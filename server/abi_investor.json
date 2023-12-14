@@ -1,0 +1,55 @@
+[
+  {
+    "name": "nextPosition",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [],
+    "outputs": [
+      {"internalType": "uint256", "name": "", "type": "uint256"}
+    ]
+  },
+  {
+    "name": "life",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [
+      {"internalType": "uint256", "name": "index", "type": "uint256"}
+    ],
+    "outputs": [
+      {"internalType": "uint256", "name": "", "type": "uint256"}
+    ]
+  },
+  {
+    "name": "kill",
+    "type": "function",
+    "inputs": [
+      {"internalType": "uint256", "name": "index", "type": "uint256"},
+      {"internalType": "bytes", "name": "data", "type": "bytes"}
+    ],
+    "outputs": []
+  },
+  {
+    "name":"Kill",
+    "type":"event",
+    "anonymous":false,
+    "inputs": [
+      {"indexed":true,"internalType":"uint256","name":"index","type":"uint256"},
+      {"indexed":true,"internalType":"address","name":"keeper","type":"address"},
+      {"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},
+      {"indexed":false,"internalType":"uint256","name":"fee","type":"uint256"},
+      {"indexed":false,"internalType":"uint256","name":"borrow","type":"uint256"}
+    ]
+  },
+  {
+    "name":"Edit",
+    "type":"event",
+    "anonymous":false,
+    "inputs": [
+      {"indexed":true,"internalType":"uint256","name":"index","type":"uint256"},
+      {"indexed":false,"internalType":"int256","name":"amount","type":"int256"},
+      {"indexed":false,"internalType":"int256","name":"borrow","type":"int256"},
+      {"indexed":false,"internalType":"int256","name":"sharesChange","type":"int256"},
+      {"indexed":false,"internalType":"int256","name":"borrowChange","type":"int256"}
+    ]
+  }
+]

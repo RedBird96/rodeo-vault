@@ -1,0 +1,39 @@
+{
+  "name": "rodeo-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "testing": "env NEXT_PUBLIC_RODEO_ENV=staging next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "prettier": {
+    "trailingComma": "es5",
+    "tabWidth": 2,
+    "semi": true,
+    "singleQuote": false
+  },
+  "eslintConfig": {
+    "rules": {
+      "jsx-a11y/alt-text": 0
+    }
+  },
+  "dependencies": {
+    "@rainbow-me/rainbowkit": "0.12.17",
+    "ethers": "5.7.2",
+    "next": "12.2.2",
+    "pg": "8.8.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-toastify": "^9.1.1",
+    "recharts": "^2.1.16",
+    "wagmi": "0.12.18"
+  },
+  "devDependencies": {
+    "eslint": "8.20.0",
+    "eslint-config-next": "12.2.2",
+    "sass": "^1.54.0"
+  }
+}

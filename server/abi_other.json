@@ -1,0 +1,87 @@
+[
+  {
+    "name": "totalSupply",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [],
+    "outputs": [
+      {"internalType": "uint256", "name": "", "type": "uint256"}
+    ]
+  },
+  {
+    "name": "balanceOf",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [
+      {"internalType": "address", "name": "user", "type": "address"}
+    ],
+    "outputs": [
+      {"internalType": "uint256", "name": "", "type": "uint256"}
+    ]
+  },
+  {
+    "name": "rate",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [],
+    "outputs": [
+      {"internalType": "uint256", "name": "", "type": "uint256"}
+    ]
+  },
+  {
+    "name": "getAumInUsdg",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [
+      {"internalType": "bool", "name": "maximise", "type": "bool"}
+    ],
+    "outputs": [
+      {"internalType": "uint256", "name": "", "type": "uint256"}
+    ]
+  },
+  {
+    "name": "latestAnswer",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [],
+    "outputs": [
+      {"internalType": "int256", "name": "", "type": "int256"}
+    ]
+  },
+  {
+    "name": "plsPerSecond",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [],
+    "outputs": [
+      {"internalType": "uint256", "name": "", "type": "uint256"}
+    ]
+  },
+  {
+    "name": "tokensPerInterval",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [],
+    "outputs": [
+      {"internalType": "uint256", "name": "", "type": "uint256"}
+    ]
+  },
+  {
+    "name": "pool",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [],
+    "outputs": [
+      {"internalType": "address", "name": "", "type": "address"}
+    ]
+  },
+  {
+    "name": "nftPool",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [],
+    "outputs": [
+      {"internalType": "address", "name": "", "type": "address"}
+    ]
+  }
+]

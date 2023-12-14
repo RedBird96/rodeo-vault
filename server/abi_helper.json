@@ -1,0 +1,70 @@
+[
+  {
+    "name": "pool",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [
+      {"internalType": "address", "name": "pool", "type": "address"}
+    ],
+    "outputs": [
+      {"internalType": "bool", "name": "paused", "type": "bool"},
+      {"internalType": "uint256", "name": "borrowMin", "type": "uint256"},
+      {"internalType": "uint256", "name": "cap", "type": "uint256"},
+      {"internalType": "uint256", "name": "index", "type": "uint256"},
+      {"internalType": "uint256", "name": "shares", "type": "uint256"},
+      {"internalType": "uint256", "name": "borrow", "type": "uint256"},
+      {"internalType": "uint256", "name": "supply", "type": "uint256"},
+      {"internalType": "uint256", "name": "rate", "type": "uint256"},
+      {"internalType": "uint256", "name": "price", "type": "uint256"}
+    ]
+  },
+  {
+    "name": "rateModel",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [
+      {"internalType": "address", "name": "pool", "type": "address"}
+    ],
+    "outputs": [
+      {"internalType": "uint256", "name": "kink", "type": "uint256"},
+      {"internalType": "uint256", "name": "base", "type": "uint256"},
+      {"internalType": "uint256", "name": "low", "type": "uint256"},
+      {"internalType": "uint256", "name": "high", "type": "uint256"}
+    ]
+  },
+  {
+    "name": "strategies",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [
+      {"internalType": "address", "name": "investor", "type": "address"},
+      {"internalType": "uint256[]", "name": "indexes", "type": "uint256[]"}
+    ],
+    "outputs": [
+      {"internalType": "address[]", "name": "addresses", "type": "address[]"},
+      {"internalType": "uint256[]", "name": "statuses", "type": "uint256[]"},
+      {"internalType": "uint256[]", "name": "slippages", "type": "uint256[]"},
+      {"internalType": "uint256[]", "name": "caps", "type": "uint256[]"},
+      {"internalType": "uint256[]", "name": "tvls", "type": "uint256[]"}
+    ]
+  },
+  {
+    "name": "peekPosition",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [
+      {"internalType": "uint256", "name": "index", "type": "uint256"}
+    ],
+    "outputs": [
+      {"internalType": "address", "name": "pool", "type": "address"},
+      {"internalType": "uint256", "name": "strategy", "type": "uint256"},
+      {"internalType": "uint256", "name": "shares", "type": "uint256"},
+      {"internalType": "uint256", "name": "borrow", "type": "uint256"},
+      {"internalType": "uint256", "name": "sharesValue", "type": "uint256"},
+      {"internalType": "uint256", "name": "borrowValue", "type": "uint256"},
+      {"internalType": "uint256", "name": "life", "type": "uint256"},
+      {"internalType": "uint256", "name": "amount", "type": "uint256"},
+      {"internalType": "uint256", "name": "price", "type": "uint256"}
+    ]
+  }
+]

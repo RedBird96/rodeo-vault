@@ -1,0 +1,44 @@
+<svg width="290" height="290" viewBox="0 0 290 290" xmlns="http://www.w3.org/2000/svg" xmlns:xlink='http://www.w3.org/1999/xlink'>
+<defs>
+<clipPath id="corners"><rect width="290" height="290" rx="42" ry="42" /></clipPath>
+<linearGradient id="0" x1="0.5" y1="0" x2="0.5" y2="1">
+  <stop offset="0%" stop-color="#ffffb5"/>
+  <stop offset="7.33%" stop-color="#fef372"/>
+  <stop offset="22%" stop-color="#f6d860"/>
+  <stop offset="27.67%" stop-color="#f3bf59"/>
+  <stop offset="39%" stop-color="#ed894b"/>
+  <stop offset="45%" stop-color="#e47346"/>
+  <stop offset="57%" stop-color="#d53a42"/>
+  <stop offset="63.33%" stop-color="#c93a51"/>
+  <stop offset="76%" stop-color="#b1385e"/>
+  <stop offset="82%" stop-color="#97385d"/>
+  <stop offset="94%" stop-color="#6a324f"/>
+</linearGradient>
+<radialGradient id="1" gradientTransform="translate(-1 -0.5) scale(2, 2)">
+  <stop offset="19%" stop-color="#d53a42"/>
+  <stop offset="39.25%" stop-color="rgba(204, 58, 78, 0.75)"/>
+  <stop offset="59.5%" stop-color="rgba(194, 57, 86, 0.5)"/>
+  <stop offset="100%" stop-color="rgba(177, 56, 94, 0)"/>
+</radialGradient>
+</defs>
+<g clip-path="url(#corners)">
+<rect fill="url(#0)" x="0px" y="0px" width="290px" height="290px" />
+<rect fill="url(#1)" x="0px" y="0px" width="290px" height="290px" />
+<ellipse cx="50%" cy="32px" rx="220px" ry="120px" fill="rgba(255,255,255,0.2)" opacity="0.85" />
+<rect x="16" y="16" width="258" height="258" rx="26" ry="26" fill="rgba(0,0,0,0)" stroke="rgba(255,255,255,0.4)" />
+<text y="64px" x="32px" fill="white" font-family="\'Courier New\', monospace" font-weight="200" font-size="32px">#1023</text>
+<text y="111px" x="32px" fill="white" font-family="\'Courier New\', monospace" font-weight="200" font-size="32px">Ponzi</text>
+<g style="transform:translate(29px, 175px)">
+  <rect width="232px" height="26px" rx="8px" ry="8px" fill="rgba(0,0,0,0.4)" />
+  <text x="12px" y="17px" font-family="\'Courier New\', monospace" font-size="12px" fill="white"><tspan fill="rgba(255,255,255,0.6)">Value: </tspan>26,923.02</text>
+</g>
+<g style="transform:translate(29px, 205px)">
+  <rect width="232px" height="26px" rx="8px" ry="8px" fill="rgba(0,0,0,0.4)" />
+  <text x="12px" y="17px" font-family="\'Courier New\', monospace" font-size="12px" fill="white"><tspan fill="rgba(255,255,255,0.6)">Borrow: </tspan>5000.00</text>
+</g>
+<g style="transform:translate(29px, 235px)">
+  <rect width="232px" height="26px" rx="8px" ry="8px" fill="rgba(0,0,0,0.4)" />
+  <text x="12px" y="17px" font-family="\'Courier New\', monospace" font-size="12px" fill="white"><tspan fill="rgba(255,255,255,0.6)">Collateral: </tspan>1000.00</text>
+</g>
+</g>
+</svg>
