@@ -284,26 +284,26 @@ export default function VaultPool() {
                 <h4>Utililzed Protocols</h4>
               </div>
               <div className="flex">
-                <div className="protocollink">
+                <a className="protocollink" href="https://aave.com/" target="_blank">
                   <img src="/protocols/aave.svg" width={20} height={20}/>
-                  aave
+                  <div style={{margin:"0px 2px 0px 2px"}}>aave</div>
                   <img src="/assets/external-link.svg" width={20} height={20} />
-                </div>
-                <div className="protocollink">
+                </a>
+                <a className="protocollink" href="https://lido.fi/" target="_blank">
                   <img src="/protocols/lido.svg" width={20} height={20} />
-                  lido
+                  <p style={{margin:"0px 2px 0px 2px"}}>lido</p>
                   <img src="/assets/external-link.svg" width={20} height={20} />
-                </div>
-                <div className="protocollink">
+                </a>
+                <a className="protocollink" href="https://balancer.fi/" target="_blank" >
                   <img src="/protocols/balancer.svg" width={20} height={20} />
-                  balancer
+                  <p style={{margin:"0px 2px 0px 2px"}}>balancer</p>
                   <img src="/assets/external-link.svg" width={20} height={20} />
-                </div>
-                <div className="protocollink">
+                </a>
+                <a className="protocollink" href="https://1inch.io/" target="_blank">
                   <img src="/protocols/1inch.svg" width={20} height={20} />
-                  1inch
+                  <p style={{margin:"0px 2px 0px 2px"}}>1inch</p>
                   <img src="/assets/external-link.svg" width={20} height={20} />
-                </div>
+                </a>
               </div>
             </div>
             

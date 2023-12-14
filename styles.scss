@@ -1204,4 +1204,6 @@ input[type=range] {
   padding: 5px 10px 5px 10px;
   margin-right: 20px;
   cursor: pointer;
+  color: var(--foreground);
+  text-decoration: none;
 }

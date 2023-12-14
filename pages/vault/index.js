@@ -69,8 +69,12 @@ export default function Vault() {
             </div>
             <div className="overview-flex">
               <div className="flex-1 label">Safety</div>
-              <div>
-                {formatNumber(0)}%
+              <div className="flex">
+                <img src="/assets/color-shield.svg" width={20} height={20}/>
+                <img src="/assets/color-shield.svg" width={20} height={20}/>
+                <img src="/assets/color-shield.svg" width={20} height={20}/>
+                <img src="/assets/color-shield.svg" width={20} height={20}/>
+                <img src="/assets/shield.svg" width={20} height={20}/>
               </div>
             </div>
             <div className="overview-flex">
@@ -82,10 +86,10 @@ export default function Vault() {
             <div className="frame-border"></div>
 
             <div className="overview-flex">
-              <div className="flex-1 label">Contract</div>
-              <div>
-                -- ETH
-              </div>
+              <div className="flex-1 label">Contract: 0xE946...5F5C</div>
+              <a style={{cursor:"pointer"}} href="https://arbiscan.io/address/0xE946Dd7d03F6F5C440F68c84808Ca88d26475FC5" target="_blank">
+                <img src="/assets/external-link.svg" width={20} height={20} />
+              </a>
             </div>
             <div className="mb-4" style={{marginTop: "20px"}}>
               <Link href={`/vault/detail/0x000`}>
