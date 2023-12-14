@@ -23,9 +23,6 @@ import {
   contracts as addresses,
 } from "../../../utils";
 import Layout from "../../../components/layout";
-import Tooltip from "../../../components/tooltip";
-import ChartPool from "../../../components/charts/pool";
-import ChartInterestRateModel from "../../../components/charts/interestRateModel";
 import ModalPoolDeposit from "../../../components/modals/poolDeposit";
 import ModalPoolWithdraw from "../../../components/modals/poolWithdraw";
 import ModalLmDeposit from "../../../components/modals/lmDeposit";
@@ -44,179 +41,20 @@ export default function VaultPool() {
   // const pool = state.pools.find((p) => p.slug == router.query.pool);
   // const asset = state.assets[pool?.asset] || { symbol: "?" };
   const [modal, setModal] = useState("");
-  // const [data, setData] = useState({
-  //   value: parseUnits("0"),
-  //   valueInLm: parseUnits("0"),
-  //   balance: parseUnits("0"),
-  //   balanceLp: parseUnits("0"),
-  //   balanceInLm: parseUnits("0"),
-  //   assetBalance: parseUnits("0"),
-  //   allowance: parseUnits("0"),
-  //   allowanceLp: parseUnits("0"),
-  //   allowanceHelper: parseUnits("0"),
-  //   assetAllowance: parseUnits("0"),
-  //   rewardsBalance: parseUnits("0"),
-  //   tvl: parseUnits("0"),
-  //   lmAmount: ZERO,
-  //   lmLp: ZERO,
-  //   lmLock: ZERO,
-  //   lmBoostLp: ZERO,
-  //   lmBoostLock: ZERO,
-  //   lmOwed: ZERO,
-  //   lmValue: ZERO,
-  //   lmLpValue: ZERO,
-  //   lmApr: ZERO,
-  //   ordoBalances: [],
-  // });
-  // const enableLm =
-  //   typeof window !== "undefined" && window.location.hash === "#lm";
-
-  // async function fetchData() {
-  //   if (!pool || !contracts) return;
-  //   const poolContract = contracts.asset(pool.address);
-  //   const assetContract = contracts.asset(pool.asset);
-  //   const lmValues = await contracts.liquidityMining.users(address);
-
-  //   const lmData = await call(
-  //     signer,
-  //     addresses.liquidityMining,
-  //     "getUser-uint256,address-uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256",
-  //     0,
-  //     address
-  //   );
-
-  //   const ordoBalancesData = await call(
-  //     signer,
-  //     addresses.liquidityMiningPluginOrdo,
-  //     "getBalances-address,uint256,uint256-address[],uint256[],uint256[]",
-  //     address,
-  //     10000,
-  //     50
-  //   );
-  //   const ordoBalances = [];
-  //   for (let i in ordoBalancesData[0]) {
-  //     if (ordoBalancesData[2][i].gt(0)) {
-  //       ordoBalances.push({
-  //         token: ordoBalancesData[0][i],
-  //         strike: ordoBalancesData[1][i],
-  //         balance: ordoBalancesData[2][i],
-  //       });
-  //     }
-  //   }
-
-  //   const data = {
-  //     tvl: parseUnits("0"),
-  //     value: parseUnits("0"),
-  //     valueInLm: parseUnits("0"),
-  //     balance: await poolContract.balanceOf(address),
-  //     balanceLp: await call(
-  //       signer,
-  //       addresses.lpToken,
-  //       "balanceOf-address-uint256",
-  //       address
-  //     ),
-  //     balanceInLm: lmValues[0],
-  //     assetBalance: await assetContract.balanceOf(address),
-  //     allowance: await poolContract.allowance(
-  //       address,
-  //       addresses.liquidityMining
-  //     ),
-  //     allowanceLp: await call(
-  //       signer,
-  //       addresses.lpToken,
-  //       "allowance-address,address-uint256",
-  //       address,
-  //       addresses.liquidityMining
-  //     ),
-  //     allowanceHelper: await call(
-  //       signer,
-  //       pool.asset,
-  //       "allowance-address,address-uint256",
-  //       address,
-  //       addresses.liquidityMiningHelper
-  //     ),
-  //     assetAllowance: await assetContract.allowance(address, pool.address),
-  //     rewardsBalance: await contracts.liquidityMining.getPending(address),
-  //     lmAmount: lmData[0],
-  //     lmLp: lmData[1],
-  //     lmLock: lmData[2],
-  //     lmBoostLp: lmData[3],
-  //     lmBoostLock: lmData[4],
-  //     lmOwed: lmData[5],
-  //     lmValue: lmData[6],
-  //     lmLpValue: lmData[7],
-  //     lmApr: pool.lmApr,
-  //     ordoBalances,
-  //   };
-
-  //   if (pool.shares.gt(0)) {
-  //     data.value = data.balance.mul(pool.supply).div(pool.shares);
-  //     data.valueInLm = data.balanceInLm.mul(pool.supply).div(pool.shares);
-  //   }
-  //   const priceAdjusted = pool.price
-  //     .mul(ONE)
-  //     .div(parseUnits("1", asset.decimals));
-  //   data.tvl = pool.supply.mul(priceAdjusted).div(ONE);
-  //   setData(data);
-  // }
-
-  // useEffect(() => {
-  //   fetchData().then(
-  //     () => {},
-  //     (e) => console.error("fetch", e)
-  //   );
-  // }, [pool, networkName, address]);
-
-  // async function onClaim() {
-  //   runTransaction(
-  //     call(
-  //       signer,
-  //       addresses.liquidityMining,
-  //       "+harvest-uint256,address,address-",
-  //       0,
-  //       address,
-  //       addresses.liquidityMiningPluginXrdo
-  //     ),
-  //     "Claiming...",
-  //     "Claimed!",
-  //     true,
-  //     "arbitrum"
-  //   );
-  // }
-
-  // async function onExercise(option) {
-  //   const teller = "0xF507733f260a42bB2c8108dE87B7B0Ce5826A9cD";
-  //   const cost = option.balance.mul(option.strike).div(ONE);
-  //   const allowance = await call(
-  //     signer,
-  //     pool.asset,
-  //     "allowance-address,address-uint256",
-  //     address,
-  //     teller
-  //   );
-  //   if (allowance.lt(cost)) {
-  //     await runTransaction(
-  //       call(signer, pool.asset, "+approve-address,uint256", teller, cost),
-  //       "Setting allowance...",
-  //       "Set",
-  //       true,
-  //       "arbitrum"
-  //     );
-  //   }
-  //   runTransaction(
-  //     call(
-  //       signer,
-  //       teller,
-  //       "+exercise-address,uint256-",
-  //       option.token,
-  //       option.balance
-  //     ),
-  //     "Exercising...",
-  //     "Exercised!",
-  //     true,
-  //     "arbitrum"
-  //   );
-  // }
+  const [data, setData] = useState({
+    wstLockedAmount: 8601.71717429,
+    wstLockedUSDAmount: 22.03,
+    ethDepositedAmount: 1.58,
+    totalDepositedAmount: 1.82,
+    depositedGrossAPY: 8,
+    platformFee: 0.77,
+    annualFee: 0,
+    performanceFee: 0.58,
+    exitFee: 0.02,
+    myNetValue: 0,
+    myNetEarning: 0,
+    myNetLP: 0
+  });
 
   return (
     <Layout title="Vault stETH" backLink="/vault">
@@ -232,7 +70,7 @@ export default function VaultPool() {
               </div>
               <div className="flex" style={{alignItems:"center"}}>
                 <img src="/assets/wsteth.png" width={30} height={30}/>
-                <div>wstETH locked: 8601.7171717 = $22.03M</div>
+                <div>{`wstETH locked: ${data.wstLockedAmount} = $${data.wstLockedUSDAmount}M`}</div>
               </div>
             </div>
             
@@ -244,7 +82,7 @@ export default function VaultPool() {
               <div className="flex" style={{justifyContent:"space-between"}}>
                 <div className="flex" style={{flexDirection:"column"}}>
                   <div className="flex-1 label">Deposit (ETH)</div>
-                  <div>1.58K / 1.82K</div>
+                  <div>{`${data.ethDepositedAmount}K / ${data.totalDepositedAmount}K`}</div>
                 </div>
                 <div className="flex" style={{flexDirection:"column"}}>
                   <div className="flex-1 label">Deposit Token</div>
@@ -252,7 +90,7 @@ export default function VaultPool() {
                 </div>
                 <div className="flex" style={{flexDirection:"column"}}>
                   <div className="flex-1 label">Gross APY</div>
-                  <div>7.23%</div>
+                  <div>{`${data.depositedGrossAPY - data.platformFee}%`}</div>
                 </div>
               </div>
             </div>
@@ -266,11 +104,11 @@ export default function VaultPool() {
               <div className="flex" style={{justifyContent:"space-between"}}>
                 <div className="flex" style={{flexDirection:"column"}}>
                   <div className="flex-1 label">Annual Management Fee</div>
-                  <div>0</div>
+                  <div>{`${data.annualFee}`}</div>
                 </div>
                 <div className="flex" style={{flexDirection:"column"}}>
                   <div className="flex-1 label">Performance Fee</div>
-                  <div>0.58% (8% of Gross APY)</div>
+                  <div>{`${data.performanceFee}% (${data.depositedGrossAPY}% of Gross APY)`}</div>
                 </div>
                 <div className="flex" style={{flexDirection:"column"}}>
                   <div className="flex-1 label">Exit Fee</div>
@@ -315,17 +153,17 @@ export default function VaultPool() {
             <div className="grid-3">
               <div>
                 <div className="flex-1 label">Net Value (ETH)</div>
-                <div> 0 </div>
+                <div> {data.myNetValue} </div>
                 <div> = $0</div>
               </div>
               <div>
                 <div className="flex-1 label">Earnings (ETH)</div>
-                <div> 0 </div>
+                <div> {data.myNetEarning} </div>
                 <div> = $0</div>
               </div>
               <div>
                 <div className="flex-1 label">LP (wstETH)</div>
-                <div> 0 </div>
+                <div> {data.myNetLP} </div>
                 <div> = $0</div>
               </div>
             </div>
@@ -377,19 +215,73 @@ export default function VaultPool() {
       <div className="position-loading">Loading...</div>
       {/* {modal == "deposit" ? (
         <ModalPoolDeposit
-          pool={}
-          asset={}
-          data={}
-          fetchData={}
+          pool={pool}
+          asset={asset}
+          data={data}
+          fetchData={fetchData}
           setModal={setModal}
         />
       ) : null}
       {modal == "withdraw" ? (
         <ModalPoolWithdraw
-          pool={}
-          asset={}
-          data={}
-          fetchData={}
+          pool={pool}
+          asset={asset}
+          data={data}
+          fetchData={fetchData}
+          setModal={setModal}
+        />
+      ) : null}
+      {modal == "depositLm" ? (
+        <ModalLmDeposit
+          pool={pool}
+          asset={asset}
+          data={data}
+          fetchData={fetchData}
+          setModal={setModal}
+        />
+      ) : null}
+      {modal == "withdrawLm" ? (
+        <ModalLmWithdraw
+          pool={pool}
+          asset={asset}
+          data={data}
+          fetchData={fetchData}
+          setModal={setModal}
+        />
+      ) : null}
+      {modal == "depositLmLp" ? (
+        <ModalLmDepositLp
+          pool={pool}
+          asset={asset}
+          data={data}
+          fetchData={fetchData}
+          setModal={setModal}
+        />
+      ) : null}
+      {modal == "withdrawLmLp" ? (
+        <ModalLmWithdrawLp
+          pool={pool}
+          asset={asset}
+          data={data}
+          fetchData={fetchData}
+          setModal={setModal}
+        />
+      ) : null}
+      {modal == "harvestOrdo" ? (
+        <ModalLmHarvestOrdo
+          pool={pool}
+          asset={asset}
+          data={data}
+          fetchData={fetchData}
+          setModal={setModal}
+        />
+      ) : null}
+      {modal == "withdrawLm0" ? (
+        <ModalLmWithdraw0
+          pool={pool}
+          asset={asset}
+          data={data}
+          fetchData={fetchData}
           setModal={setModal}
         />
       ) : null} */}
