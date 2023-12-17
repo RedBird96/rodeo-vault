@@ -83,6 +83,7 @@ func setup() {
 	mux.HandleFunc("/earns", handleEarns)
 	mux.HandleFunc("/liquidations", handleLiquidations)
 	mux.HandleFunc("/analytics", handleAnalytics)
+	mux.HandleFunc("/vault/position/history", handleVaultPositions)
 
 	go taskQueryProtocolTvl()
 	go taskQueryPools()
@@ -164,6 +165,23 @@ type PoolInfo struct {
 	Price     *BigInt `json:"price"`
 }
 
+type VaultPoolInfo struct {
+	Asset   string `json:"asset"`
+	Address string `json:"address"`
+	Slug    string `json:"slug"`
+
+	GrossAPY int64   `json:"gross_apy"`
+	NetAPY   float64 `json:"net_apy"`
+	Tvl      *BigInt `json:"tvl"`
+	Cap      *BigInt `json:"cap"`
+
+	LockedAmount   *BigInt `json:"locked_amount"`
+	Volume         *BigInt `json:"volume"`
+	PerformanceFee float64 `json:"performance_fee"`
+	ExitFee        float64 `json:"exit_fee"`
+	ManagementFee  float64 `json:"management_fee"`
+}
+
 type StrategyInfo struct {
 	Index          int64           `json:"index"`
 	Slug           string          `json:"slug"`
@@ -233,6 +251,9 @@ type DbPositionHistory struct {
 	Life        *BigInt   `json:"life"`
 	Amount      *BigInt   `json:"amount"`
 	Price       *BigInt   `json:"price"`
+}
+
+type VaultPool struct {
 }
 
 var assets = map[string]*AssetInfo{
@@ -321,6 +342,24 @@ var pools = []*PoolInfo{
 		Asset:   "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
 		Address: "0x0032F5E1520a66C6E572e96A11fBF54aea26f9bE",
 		Slug:    "usdc-v1",
+	},
+}
+
+var vaultPools = []*VaultPoolInfo{
+	&VaultPoolInfo{
+		Asset:   "0x5979D7b546E38E414F7E9822514be443A4800529",
+		Address: "0xE946Dd7d03F6F5C440F68c84808Ca88d26475FC5",
+		Slug:    "ETH/wETH/stETH/wstETH",
+
+		GrossAPY:       8,
+		PerformanceFee: 0.62,
+		ExitFee:        0.02,
+		ManagementFee:  0.77,
+
+		Tvl:          ONE,
+		Cap:          ONE,
+		LockedAmount: ONE,
+		Volume:       ONE,
 	},
 }
 
@@ -597,12 +636,13 @@ func main() {
 
 func handleOverview(w http.ResponseWriter, r *http.Request) {
 	httpResJson(w, 200, J{
-		"message":    "Henlo cowboy!",
-		"tvl":        protocolTvl,
-		"tokenomics": tokenomics,
-		"assets":     assets,
-		"pools":      pools,
-		"strategies": strategies,
+		"message":     "Henlo cowboy!",
+		"tvl":         protocolTvl,
+		"tokenomics":  tokenomics,
+		"assets":      assets,
+		"pools":       pools,
+		"strategies":  strategies,
+		"vault_pools": vaultPools,
 	})
 }
 
@@ -760,6 +800,27 @@ func handleAnalytics(w http.ResponseWriter, r *http.Request) {
 		"profit":  profit,
 		"danger":  danger,
 	})
+}
+
+func handleVaultPositions(w http.ResponseWriter, r *http.Request) {
+	query, interval := sqlWindowedQuery(r.URL.Query())
+	data := []struct {
+		T            time.Time `json:"t"`
+		Shares       *BigInt   `json:"shares"`
+		Borrow       *BigInt   `json:"borrow"`
+		Shares_value *BigInt   `json:"shares_value"`
+		Borrow_value *BigInt   `json:"borrow_value"`
+		Life         *BigInt   `json:"life"`
+		Amount       *BigInt   `json:"amount"`
+		Price        *BigInt   `json:"price"`
+	}{}
+	check(dbSelect(&data, query+` select
+      t.t, coalesce(avg(shares)::numeric(32), 0) as shares, coalesce(avg(borrow)::numeric(32), 0) as borrow, coalesce(avg(shares_value)::numeric(32), 0) as shares_value, coalesce(avg(borrow_value)::numeric(32), 0) as borrow_value, coalesce(avg(life)::numeric(32), 0) as life, coalesce(avg(amount)::numeric(32), 0) as amount, coalesce(avg(price)::numeric(32), 0) as price
+    from t
+    left join positions_history on t.t = date_trunc('`+interval+`', time)
+      and chain = $1 and "index" = $2
+    group by 1 order by 1`, r.URL.Query().Get("chain"), r.URL.Query().Get("index")))
+	httpResJson(w, 200, data)
 }
 
 func tasksRun() {

@@ -10,57 +10,59 @@ import {
   useGlobalState,
   useWeb3,
   formatNumber,
+  formatAddress,
+  formatKNumber,
   parseUnits,
   formatUnits,
 } from "../../utils";
 import Layout from "../../components/layout";
-import Tooltip from "../../components/tooltip";
 
 export default function Vault() {
 
   const { state } = useGlobalState();
 
   //test Data
-  const tempData = {
-    gross_apy: 0,
-    net_apy: 0,
-    tvl: 8.6,
-    cap: 10,
-    address: '0xE946...5F5C'
-  }
-
-  // if (state.vault.length === 0) {
-  //   return (
-  //     <Layout title="Vault">
-  //       <h1 className="title">Overview</h1>
-  //       <div className="loading">Loading...</div>
-  //       <h1 className="title" style={{ marginTop: 24 }}>Positions</h1>
-  //       <div className="position-loading">Loading...</div>
-  //     </Layout>
-  //   );
+  // const tempData = {
+  //   gross_apy: 0,
+  //   net_apy: 0,
+  //   tvl: 8.6,
+  //   cap: 10,
+  //   address: '0xE946...5F5C'
   // }
+
+  if (state.vault_pools.length === 0) {
+    return (
+      <Layout title="Vault">
+        <h1 className="title">Overview</h1>
+        <div className="loading">Loading...</div>
+        <h1 className="title" style={{ marginTop: 24 }}>Positions</h1>
+        <div className="position-loading">Loading...</div>
+      </Layout>
+    );
+  }
+  
   return (
     <Layout title="Vault">
       <h1 className="title">Overview</h1>
       <div className="grid-2 gap-6">
-        {/* {
-          tempData.map((vault, index) => {
+        {
+          state.vault_pools.map((v, i) => {
             return (
               <OverviewVault
-                index = {0}
-                vault={tempData}
+                index = {i}
+                vault={v}
               />
             )
           })  
-        } */}
+        }
         
-        <OverviewVault
+        {/* <OverviewVault
           index = {0}
           vault={tempData}
-        />
+        /> */}
       </div>
-      <h1 className="title" style={{ marginTop: 24 }}>Positions</h1>
-      <div className="position-loading">Loading...</div>
+      {/* <h1 className="title" style={{ marginTop: 24 }}>Positions</h1>
+      <div className="position-loading">Loading...</div> */}
       
     </Layout>
   );
@@ -68,9 +70,36 @@ export default function Vault() {
 
 function OverviewVault({index, vault}) {
 
+  const { provider, signer, address, networkName, contracts, chainId } =
+    useWeb3();
+  const vaultContract = contracts.vault(vault.address);
+  const assetContract = contracts.asset(vault.asset);
+  const [balance, setBalance] = useState(0);
+  const [tvl, setTVL] = useState(0);
+  const [capacity, setCapacity] = useState(0);
+  const [percentage, setPercentage] = useState(0);
+
+  async function fetchData() {
+    if (!assetContract)  return;
+    const assetBalance = await assetContract.balanceOf(address);
+    const su = await vaultContract.totalAssets();
+    const ca = await vaultContract.marketCapacity();
+    setBalance(assetBalance);
+    setTVL(Number(formatUnits(su)));
+    setCapacity(Number(formatUnits(ca)));
+    setPercentage(su / ca * 100); 
+  }
+  useEffect(() => {
+    fetchData().then(
+      () => {},
+      (e) => console.error("fetch", e)
+    );
+  }, [vault, address, networkName, contracts]);
+
+  const url = "https://arbiscan.io/address/" + vault.address;
   return (
     <div className="card mb-6">
-      <h2 className="title">ETH/WETH/stETH/wstETH</h2>
+      <h2 className="title">ETH/WETH/wstETH</h2>
       <div className="overview-flex">
         <div className="flex-1 label">Gross APY</div>
         <div>
@@ -84,22 +113,20 @@ function OverviewVault({index, vault}) {
         </div>
       </div>
       <div className="overview-flex">
-        <div className="flex-1 label">TVL (stETH)</div>
+        <div className="flex-1 label">TVL (wstETH)</div>
         <div>
-          {formatNumber(vault.tvl)}K
+          {formatKNumber(tvl, 2)}
         </div>
       </div>
 
       <div className="progressbar">
-        <div className="progressbar-data">
-
-        </div>
+        <div className="progressbar-data" style={{width: percentage}}/>
       </div>
 
       <div className="overview-flex">
-        <div className="flex-1 label">Cap (stETH)</div>
+        <div className="flex-1 label">Cap (wstETH)</div>
         <div>
-          {formatNumber(vault.cap)}K
+          {formatKNumber(capacity, 0)}
         </div>
       </div>
       <div className="overview-flex">
@@ -115,19 +142,19 @@ function OverviewVault({index, vault}) {
       <div className="overview-flex">
         <div className="flex-1 label">My Net Value</div>
         <div>
-          -- ETH
+          {formatNumber(balance)} wstETH
         </div>
       </div>
       <div className="frame-border"></div>
 
       <div className="overview-flex">
-        <div className="flex-1 label">{`Contract: ${vault.address}`}</div>
-        <a style={{cursor:"pointer"}} href="https://arbiscan.io/address/0xE946Dd7d03F6F5C440F68c84808Ca88d26475FC5" target="_blank">
+        <div className="flex-1 label">{`Contract: ${formatAddress(vault.address)}`}</div>
+        <a style={{cursor:"pointer"}} href={url} target="_blank">
           <img src="/assets/external-link.svg" width={20} height={20} />
         </a>
       </div>
       <div className="mb-4" style={{marginTop: "20px"}}>
-        <Link href={`/vault/detail/0x000`}>
+        <Link href={`/vault/detail/${vault.address}`}>
           <a className="button button-small w-full">Details</a>
         </Link>
       </div>            

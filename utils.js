@@ -15,10 +15,10 @@ import * as wagmiChains from "wagmi/chains";
 import { getDefaultWallets } from "@rainbow-me/rainbowkit";
 import Icon from "./components/icon";
 
-const isLocal =
-  typeof window !== "undefined"
-    ? window.location.hostname === "localhost"
-    : false;
+const isLocal = true;
+  // typeof window !== "undefined"
+  //   ? window.location.hostname === "localhost"
+  //   : false;
 
 const isStaging = process.env.NEXT_PUBLIC_RODEO_ENV == "staging";
 
@@ -32,6 +32,7 @@ export const ZERO = ethers.utils.parseUnits("0");
 export const ONE = ethers.utils.parseUnits("1");
 export const ONE6 = ethers.utils.parseUnits("1", 6);
 export const ONE12 = ethers.utils.parseUnits("1", 12);
+export const MAX_UINT256 = ethers.constants.MaxUint256;
 export const YEAR = 365 * 24 * 60 * 60;
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 export const DEAD_ADDRESS = "0x00000000000000000000000000000000DeaDBeef";
@@ -51,6 +52,10 @@ export const SILO_NAMES = {
   2: "???",
 };
 
+export const Mode = {
+  Deposit: 0,
+  Withdraw: 1
+}
 export const contracts = {
   investor: "0x8accf43Dd31DfCd4919cc7d65912A475BfA60369",
   investorHelper: "0x6f456005A7CfBF0228Ca98358f60E6AE1d347E18",
@@ -91,6 +96,7 @@ const globalStateAtom = atom({
   assets: [],
   pools: [],
   strategies: [],
+  vault_pools: []
 });
 
 export function useGlobalState() {
@@ -105,7 +111,7 @@ export function useGlobalState() {
   async function fetchData() {
     const res = await fetch(apiServerHost, { mode: "cors" });
     const state = await res.json();
-
+    
     for (let p of state.pools) {
       p.borrowMin = parseUnits(p.borrowMin || "0", 0);
       p.cap = parseUnits(p.cap || "0", 0);
@@ -140,6 +146,14 @@ export function useGlobalState() {
             .mul(tokenPrice)
             .div(p.lmBalance.mul(p.conversionRate).div(ONE6))
         : ZERO;
+    }
+
+    for (let v of state.vault_pools) {
+      v.tvl = parseUnits(/*v.tvl || */"0", 0);
+      v.cap = parseUnits(/*v.cap || */"0", 0);
+      v.locked_amount = parseUnits(/*v.locked_amount || */"0", 0);
+      v.volume = parseUnits(/*v.volume || */"0", 0);
+      v.net_apy = v.gross_apy * (1 - v.performance_fee);
     }
 
     for (let s of state.strategies) {
@@ -768,6 +782,39 @@ export function getContracts(signer, networkName) {
         ],
         signer
       ),
+    vault: (address) =>
+      new ethers.Contract(
+        address,
+        [
+          "function symbol() view returns (string)",
+          "function totalSupply() view returns (uint)",
+          "function balanceOf(address) view returns (uint)",
+          "function allowance(address, address) view returns (uint)",
+          "function approve(address, uint)",
+          "function marketCapacity() view returns (uint)",
+          "function totalAssets() view returns (uint)",
+          "function strategy() view returns (address)"
+        ],
+        signer
+      ),
+      vaultStrategy: (address) =>
+        new ethers.Contract(
+          address,
+          [
+            "function getNetAssetsInfo() view returns (uint, uint, uint, uint)",
+            "function getNetAssets() view returns (uint)",
+            "function lendingLogic() view returns (address)"
+          ],
+          signer
+      ),
+      lendingLogic: (address) =>
+        new ethers.Contract(
+          address,
+          [
+            "function getNetAssetsInfo(address) view returns (uint, uint, uint, uint)"
+          ],
+          signer
+        )
   };
 }
 
@@ -942,6 +989,25 @@ export function formatChartDate(date) {
     date.getMinutes()
   ).padStart(2, "0")}
     `;
+}
+
+export function formatKNumber(num, digits) {
+  // return Math.abs(num) > 999 ? Math.sign(num)*((Math.abs(num)/1000).toFixed(1)) + 'K' : Math.sign(num)*Math.abs(num)
+
+  const lookup = [
+    { value: 1, symbol: "" },
+    { value: 1e3, symbol: "k" },
+    { value: 1e6, symbol: "M" },
+    { value: 1e9, symbol: "G" },
+    { value: 1e12, symbol: "T" },
+    { value: 1e15, symbol: "P" },
+    { value: 1e18, symbol: "E" }
+  ];
+  const rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
+  var item = lookup.slice().reverse().find(function(item) {
+    return num >= item.value;
+  });
+  return item ? (num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol : "0";
 }
 
 export function capitalize(string) {

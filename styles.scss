@@ -258,6 +258,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   margin: 0 0 8px;
 }
 
+
 .label {
   color: var(--primary);
   font-size: 12px;
@@ -1206,4 +1207,24 @@ input[type=range] {
   cursor: pointer;
   color: var(--foreground);
   text-decoration: none;
+}
+
+.vault-label {
+  color: var(--primary);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.vault-tab {
+  display: flex;
+  margin-right: 20px;
+  cursor: pointer;
+}
+
+.selected {
+  font-weight: bold;
+  text-decoration: underline;    
+  text-decoration-color: var(--primary);
+  text-underline-offset: 10px;
+  text-decoration-thickness: 3px;
 }
