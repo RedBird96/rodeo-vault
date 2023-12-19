@@ -271,7 +271,7 @@ export default function VaultPool() {
                 </div>
                 <div className="flex" style={{flexDirection:"column"}}>
                   <div className="flex-1 label">Exit Fee</div>
-                  <div>0.02%</div>
+                  <div>{`${data.exitFee}%`}</div>
                 </div>
               </div>
             </div>
