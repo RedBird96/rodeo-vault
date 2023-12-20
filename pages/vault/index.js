@@ -21,14 +21,23 @@ export default function Vault() {
 
   const { state } = useGlobalState();
 
-  //test Data
+  // test Data
   // const tempData = {
-  //   gross_apy: 0,
-  //   net_apy: 0,
-  //   tvl: 8.6,
-  //   cap: 10,
-  //   address: '0xE946...5F5C'
+  //   gross_apy: 8,
+  //   performance_fee: 0.62,
+  //   exit_fee: 0.02,
+  //   management_fee: 0.77,
+  //   net_apy: 0.2,
+  //   tvl: 0,
+  //   cap: 0,
+  //   locked_amount: 0,
+  //   volume: 0,
+  //   asset: '0xeA9302eecFAd89cc757AD1c17c241D4e07a16D1d',
+  //   address: '0x08eccD9A9A8845Adc96A4e9a8c5f925698d5D532'
   // }
+
+  // state.vault_pools = [];
+  // state.vault_pools.push(tempData);
 
   if (state.vault_pools.length === 0) {
     return (
@@ -72,9 +81,11 @@ function OverviewVault({index, vault}) {
 
   const { provider, signer, address, networkName, contracts, chainId } =
     useWeb3();
-  const vaultContract = contracts.vault(vault.address);
+  const router = useRouter();
   const assetContract = contracts.asset(vault.asset);
+  const vaultContract = contracts.vault(vault.address);
   const [balance, setBalance] = useState(0);
+  const [symbol, setSymbol] = useState("");
   const [tvl, setTVL] = useState(0);
   const [capacity, setCapacity] = useState(0);
   const [percentage, setPercentage] = useState(0);
@@ -82,9 +93,11 @@ function OverviewVault({index, vault}) {
   async function fetchData() {
     if (!assetContract)  return;
     const assetBalance = await assetContract.balanceOf(address);
+    const sy = await assetContract.symbol();
     const su = await vaultContract.totalAssets();
     const ca = await vaultContract.marketCapacity();
     setBalance(assetBalance);
+    setSymbol(sy);
     setTVL(Number(formatUnits(su)));
     setCapacity(Number(formatUnits(ca)));
     setPercentage(su / ca * 100); 
@@ -113,7 +126,7 @@ function OverviewVault({index, vault}) {
         </div>
       </div>
       <div className="overview-flex">
-        <div className="flex-1 label">TVL (wstETH)</div>
+        <div className="flex-1 label">TVL ({symbol})</div>
         <div>
           {formatKNumber(tvl, 2)}
         </div>
@@ -124,7 +137,7 @@ function OverviewVault({index, vault}) {
       </div>
 
       <div className="overview-flex">
-        <div className="flex-1 label">Cap (wstETH)</div>
+        <div className="flex-1 label">Cap ({symbol})</div>
         <div>
           {formatKNumber(capacity, 0)}
         </div>
@@ -137,12 +150,12 @@ function OverviewVault({index, vault}) {
           <img src="/assets/color-shield.svg" width={20} height={20}/>
           <img src="/assets/color-shield.svg" width={20} height={20}/>
           <img src="/assets/shield.svg" width={20} height={20}/>
-        </div>
+        </div>  
       </div>
       <div className="overview-flex">
-        <div className="flex-1 label">My Net Value</div>
+        <div className="flex-1 label">My Balance</div>
         <div>
-          {formatNumber(balance)} wstETH
+          {formatNumber(balance)} {symbol}
         </div>
       </div>
       <div className="frame-border"></div>
@@ -154,9 +167,12 @@ function OverviewVault({index, vault}) {
         </a>
       </div>
       <div className="mb-4" style={{marginTop: "20px"}}>
-        <Link href={`/vault/detail/${vault.address}`}>
-          <a className="button button-small w-full">Details</a>
-        </Link>
+          <a 
+            className="button button-small w-full"
+            onClick={() => router.push(`/vault/detail/${vault.address}`)}
+          >
+            Details
+          </a>
       </div>            
     </div>
   );

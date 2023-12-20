@@ -14,17 +14,18 @@ import {
   onError,
   formatError,
   contracts as addresses,
+  ZERO,
 } from "../../../utils";
 import Layout from "../../../components/layout";
-
 
 export default function VaultPool() {
   const router = useRouter();
   const { state } = useGlobalState();
   const { provider, signer, address, networkName, contracts, chainId } =
     useWeb3();
-
+  
   const pool = state.vault_pools.find((p) => p.address == router.query.vault);
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [balance, setBalance] = useState(0);
@@ -47,6 +48,7 @@ export default function VaultPool() {
   });
   const [wstPrice, setWstPrice] = useState(2544);
   const [assetAllowance, setAssetAllowance] = useState(false);
+  const [allowanceAmount, setAllowanceAmount] = useState(0);
   const [annualManageFee, setAnnualManageFee] = useState(0);
   const [performanceFee, setPerformanceFee] = useState(0);
   const [exitFee, setExitFee] = useState(0);
@@ -65,22 +67,30 @@ export default function VaultPool() {
     const strategyContract = contracts.vaultStrategy(stContract);
     const lendingAddress = await strategyContract.lendingLogic();
     const lendingContract = contracts.lendingLogic(lendingAddress);
-    const [_totalAssest, debtAsset, netAsset, _ratio] = 
-      await lendingContract.getNetAssetsInfo(address);
+
+    //todo test
+    // const [_totalAssest, debtAsset, netAsset, _ratio] = 
+    //   await lendingContract.getNetAssetsInfo(address);
+    const _totalAssest = ZERO;
+    const debtAsset = ZERO;
+    const netAsset = ZERO;
+    const _ratio = 0;
+
     const lpBalance = await vaultContract.balanceOf(address);
-    const avBalance = await assetContract.balanceOf(address);
     const currency = await assetContract.symbol();
+    const avBalance = await assetContract.balanceOf(address);
     const vaultCurrency = await vaultContract.symbol();
 
-    const allowanceAmount = await assetContract.allowance(address, pool.address);
-    if (allowanceAmount == 0) {
-      setAssetAllowance(false);
+    const Aamount = await assetContract.allowance(address, pool.address);
+    setAllowanceAmount(Number(formatUnits(Aamount)));
+    if (Number(formatUnits(Aamount)) > amount) {
+      setAssetAllowance(true);
     }
     const data = {
       wstLockedAmount: Number(formatUnits(ta)),
       wstLockedUSDAmount: Number(formatUnits(ta)) * wstPrice,
-      ethDepositedAmount: 1.58,
-      totalDepositedAmount: 1.82,
+      ethDepositedAmount: 0,
+      totalDepositedAmount: 0,
       depositedGrossAPY: Number(pool.gross_apy),
       annualFee: Number(pool.management_fee),
       performanceFee: Number(pool.performance_fee),
@@ -89,7 +99,6 @@ export default function VaultPool() {
       myNetEarning: Number(formatUnits(debtAsset)),
       myNetLP: Number(formatUnits(lpBalance))
     } 
-
     setVaultSymbol(vaultCurrency);
     setSymbol(currency);
     setData(data);
@@ -97,11 +106,32 @@ export default function VaultPool() {
   }
 
   useEffect(() => {
+
     fetchDetails().then(
       () => {},
       (e) => console.error("fetch", e)
     );
-  }, [pool, networkName, address]);
+  }, [pool, networkName, address, state]);
+
+  useEffect(() => {
+
+    if (mode == Mode.Deposit) {
+      setAnnualManageFee(amount * data.annualFee / 100);
+      setPerformanceFee(amount * data.performanceFee / 100);
+      setExitFee(amount * data.exitFee / 100);
+    } else {
+      const lossAmount = amount * data.exitFee / 100 + 
+        amount * data.performanceFee / 100;
+      setEstExitFee(amount * data.exitFee / 100);
+      setEstLoss(amount);
+      setEstWithdrawl(amount - lossAmount);
+      setEstMinWithdrawl(amount - lossAmount);
+    }
+
+    if (allowanceAmount > amount) {
+      setAssetAllowance(true);
+    }
+  }, [amount]);
 
   function onMax() {
     setAmount(formatUnits(balance, 2).replaceAll(",", ""));
@@ -120,30 +150,24 @@ export default function VaultPool() {
 
     setAmount(val);
 
-    if (mode == Mode.Deposit) {
-      setAnnualManageFee(val * data.annualFee / 100);
-      setPerformanceFee(val * data.performanceFee / 100);
-      setExitFee(val * data.exitFee / 100);
-    } else {
-      const lossAmount = val * data.exitFee / 100 + 
-        val * data.performanceFee / 100;
-      setEstExitFee(val * data.exitFee / 100);
-      setEstLoss(val);
-      setEstWithdrawl(val - lossAmount);
-      setEstMinWithdrawl(val - lossAmount);
-    }
   }
 
   async function onDeposit() {
 
+    if (balance < amount) {
+      setError("Not enough balance");
+      setLoading(false);
+      return;
+    }
+
     const cost = ethers.utils.parseUnits(amount.toString());
     try {
-      await call(
-        signer,
-        addresses.liquidityMining,
-        "+deposit-uint256,address-",
-        cost,
-        address
+      await runTransaction(
+        call(signer, pool.address, "+deposit-uint256,address-", cost , address),
+        "Depositing to vault...",
+        "Deposit",
+        true,
+        networkName
       );
       fetchDetails();
     } catch (e) {
@@ -158,15 +182,20 @@ export default function VaultPool() {
   
   async function onWithdraw() {
 
+    if (data.myNetLP < amount) {
+      setError("Not enough amount");
+      setLoading(false);
+      return;
+    }
+
     const cost = ethers.utils.parseUnits(amount.toString());
     try {
-      await call(
-        signer,
-        addresses.liquidityMining,
-        "+withdraw-uint256,address, address-",
-        cost,
-        address,
-        address
+      await runTransaction(
+        call(signer, pool.address, "+withdraw-uint256,address, address-", cost , address, address),
+        "Withdrawing from vault...",
+        "Withdraw",
+        true,
+        networkName
       );
 
       fetchDetails();
@@ -184,11 +213,11 @@ export default function VaultPool() {
     const cost = ethers.utils.parseUnits(amount.toString());
     try {
       await runTransaction(
-        call(signer, pool.address, "+approve-address,uint256", address, cost),
+        call(signer, pool.asset, "+approve-address,uint256", pool.address, cost),
         "Setting allowance...",
-        "Set",
+        "Approve",
         true,
-        "arbitrum"
+        networkName
       );
       fetchDetails();
     } catch (e) {
@@ -203,11 +232,11 @@ export default function VaultPool() {
   function handleAction() {
     setLoading(true);
     setError("");
-    if (!assetAllowance) {
-      onAllow();
-      return;
-    }
     if (mode == Mode.Deposit) {
+      if (!assetAllowance) {
+        onAllow();
+        return;
+      }
       onDeposit();
     } else {
       onWithdraw();
@@ -331,6 +360,7 @@ export default function VaultPool() {
             </div>
             <div className="frame-border" style={{marginTop:"0px", marginBottom:"20px"}}/>
             <div>
+
               <label className="label flex">
                 <div className="flex-1">Amount</div >
                 <div>
@@ -347,7 +377,11 @@ export default function VaultPool() {
             </div>
             <FeeList 
               mode = {mode}
-              balance = {0}
+              balance = {
+                mode == Mode.Deposit ? 
+                balance < amount ? 0 : balance - amount :
+                data.myNetLP < amount ? 0 : data.myNetLP - amount
+              }
               symbol = {symbol}
               params = {[
                 mode == Mode.Deposit ? annualManageFee : estExitFee,
@@ -362,9 +396,9 @@ export default function VaultPool() {
               onClick={() => handleAction()}
             >
               {
-                assetAllowance ?
-                mode == Mode.Deposit ? `Deposit ${symbol}` : `Withdraw ${symbol}` :
-                `Approve ${symbol}`
+                mode == Mode.Deposit ?
+                assetAllowance ? `Approve ${symbol}` :
+                `Deposit ${symbol}` : `Withdraw ${symbol}`
               }
             </button>
           </div>
@@ -381,6 +415,7 @@ function MyInfo(
   ...params
 ) {
   
+  //todo test
   return (
     <div className="card mb-6">
       <h3>My Info</h3>
@@ -388,8 +423,8 @@ function MyInfo(
         <div>
           <div className="flex-1 label">Net Value</div>
           <div className="flex-1 label">({value.symbol})</div>
-          <div> {formatKNumber(value.netValue)} </div>
-          <div> = ${formatKNumber(value.netValue * value.price)}</div>
+          <div> {formatKNumber(value.lpValue)} </div>   
+          <div> = ${formatKNumber(value.lpValue * value.price)}</div>
         </div>
         <div>
           <div className="flex-1 label">Earnings</div>
@@ -411,13 +446,14 @@ function FeeList(
   value,
   ...params
 ) {
-
   return (
     <div>
       <div className="flex">
         <div className="flex-1 label">Available {value.symbol}</div>
         <div>
-          {formatKNumber(value.balance, 2)} {value.symbol}
+          {value.balance < 1 ? 
+          Number(value.balance).toFixed(2) : 
+          formatKNumber(value.balance, 2)} {value.symbol}
         </div>
       </div>
       <div className="flex">
@@ -426,7 +462,11 @@ function FeeList(
             value.mode == Mode.Deposit ? "Annual Management Fee" : "Est. exit fee(s)"
           }
         </div>
-        <div> {formatKNumber(value.params[0], 2)} {value.symbol} </div>
+        <div> {
+          value.params[0] < 1 ? 
+          Number(value.params[0]).toFixed(2) :
+          formatKNumber(value.params[0], 2)
+        } {value.symbol} </div>
       </div>
       <div className="flex">
         <div className="flex-1 label">
@@ -434,7 +474,11 @@ function FeeList(
             value.mode == Mode.Deposit ? "Performance Fee" : "Est. loss"
           }
         </div>
-        <div> {formatKNumber(value.params[1], 2)} {value.symbol} </div>
+        <div> {
+          value.params[1] < 1 ? 
+          Number(value.params[1]).toFixed(2) : 
+          formatKNumber(value.params[1], 2)
+        } {value.symbol} </div>
       </div>
       <div className="flex">
         <div className="flex-1 label">
@@ -442,7 +486,11 @@ function FeeList(
             value.mode == Mode.Deposit ? "Exit Fee" : "Est. withdrawal"
           }
         </div>
-        <div> {formatKNumber(value.params[2], 2)} {value.symbol} </div>
+        <div> {
+          value.params[2] < 1 ? 
+          Number(value.params[2]).toFixed(2) : 
+          formatKNumber(value.params[2], 2)
+        } {value.symbol} </div>
       </div>
       {
         value.mode == Mode.Withdraw && 
@@ -450,7 +498,11 @@ function FeeList(
           <div className="flex-1 label">
             Est. min withdrawal
           </div>
-          <div> {formatKNumber(value.params[3], 2)} {value.symbol} </div>
+          <div> {
+            value.params[3] < 1 ? 
+            Number(value.params[3]).toFixed(2) : 
+            formatKNumber(value.params[3], 2)
+          } {value.symbol} </div>
         </div>
       }
     </div>

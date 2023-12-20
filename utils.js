@@ -86,6 +86,7 @@ export function call(signer, address, fn, ...args) {
   let efn = `function ${rname}(${params}) external`;
   if (name[0] !== "+") efn += " view";
   if (returns) efn += ` returns (${returns})`;
+
   const contract = new ethers.Contract(address, [efn], signer);
   return contract[rname](...args);
 }
@@ -111,7 +112,24 @@ export function useGlobalState() {
   async function fetchData() {
     const res = await fetch(apiServerHost, { mode: "cors" });
     const state = await res.json();
-    
+
+    ////////test data//////////////////
+    const tempData = {
+      gross_apy: 8,
+      performance_fee: 0.62,
+      exit_fee: 0.02,
+      management_fee: 0.77,
+      net_apy: 0.2,
+      tvl: 0,
+      cap: 0,
+      locked_amount: 0,
+      volume: 0,
+      asset: '0xCa13ea158e11DE30FF5FBb37d231C9B93849B2BA',
+      address: '0x08eccD9A9A8845Adc96A4e9a8c5f925698d5D532'
+    }
+    state.vault_pools.push(tempData);
+    ////////////////////////////////////
+
     for (let p of state.pools) {
       p.borrowMin = parseUnits(p.borrowMin || "0", 0);
       p.cap = parseUnits(p.cap || "0", 0);
@@ -503,6 +521,18 @@ export const ADDRESSES = {
     investorHelper: "0x60923cf52f5ac7ce145bd3a5b34de02632fa4f50",
     positionManager: "0x54978E353C057aa6e3011cF819fBe08200814477",
   },
+  "sepolia": {
+    investor: "0x8accf43Dd31DfCd4919cc7d65912A475BfA60369",
+    investorHelper: "0x6f456005A7CfBF0228Ca98358f60E6AE1d347E18",
+    positionManager: "0x5e4d7F61cC608485A2E4F105713D26D58a9D0cF6",
+    liquidityMining: "0x3A039A4125E8B8012CF3394eF7b8b02b739900b1",
+    privateInvestors: "0xDF06ffa8bd87aa7138277DFB001D33Eae49F0463",
+    privateInvestorsRewarder: "0xE38581a771B5A0bdf13D61fbf1E5efB3BbbFbFc3",
+    vester: "0xbb5032d20b689d9eE69A7C490Bd02Fc9efC734c2",
+    tokenStaking: "0x45a58482c3B8Ce0e8435E407fC7d34266f0A010D",
+    tokenStakingDividends: "0x40aDa8CE51aD45a0211a7f495A526E26e4b3b5Ea",
+    token: "0x033f193b3Fceb22a440e89A2867E8FEE181594D9",
+  },
   localhost: {
     investor: "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
     investorHelper: "0x959922be3caee4b8cd9a407cc3ac1c251c2007b1",
@@ -513,6 +543,7 @@ export const ADDRESSES = {
 
 export const EXPLORER_URLS = {
   arbitrum: "arbiscan.io",
+  sepolia: "sepolia.etherscan.io",
   "arbitrum-rinkeby": "testnet.arbiscan.io",
   localhost: "arbiscan.io",
 };
@@ -523,6 +554,7 @@ export const rpcUrl =
 
 export const rpcUrls = {
   42161: { http: rpcUrl },
+  11155111: {http: "https://ethereum-sepolia.publicnode.com"},
   421611: { http: "https://rinkeby.arbitrum.io/rpc" },
   1337: { http: "http://localhost:8545" },
 };
@@ -535,6 +567,7 @@ if (global.window) {
 export const { chains, provider } = configureChains(
   [
     wagmiChains.arbitrum,
+    wagmiChains.sepolia,
     ...(global.window && window.location.hostname === "localhost"
       ? [wagmiChains.localhost]
       : []),
@@ -825,6 +858,7 @@ export async function runTransaction(
   showExplorer = true,
   networkName
 ) {
+
   try {
     const tx = await callPromise;
     toast.dismiss();

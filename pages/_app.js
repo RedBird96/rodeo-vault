@@ -48,7 +48,7 @@ export default function App({ Component, pageProps }) {
     <ErrorBoundary>
       <WagmiConfig client={wagmiClient}>
         <RainbowKitProvider chains={chains} theme={theme}>
-          {networkName != "arbitrum" && networkName != "localhost" ? (
+          {networkName != "arbitrum" && networkName != "localhost" && networkName != "sepolia" ? (
             <Layout title="Wrong network"></Layout>
           ) : (
             <ErrorBoundary>
