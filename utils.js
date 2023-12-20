@@ -110,12 +110,14 @@ export function useGlobalState() {
   const [state, setState] = useAtom(globalStateAtom);
 
   async function fetchData() {
-    // const res = await fetch(apiServerHost, { mode: "cors" });
+    const res = await fetch(apiServerHost, { mode: "cors" });
     // const state = await res.json();
 
     ////////test data//////////////////
     let state = {
-      vault_pools:[]
+      vault_pools:[],
+      strategies: [],
+      pools: []
     };// = await res.json();
 
     const tempData = {
