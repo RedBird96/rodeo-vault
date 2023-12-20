@@ -58,6 +58,7 @@ export default function VaultPool() {
   async function fetchDetails() {
     if (!pool || !contracts) return;
 
+    //test
     const assetContract = contracts.asset(pool.asset);
     const vaultContract = contracts.vault(pool.address);
     const stContract = await vaultContract.strategy();
