@@ -36,9 +36,6 @@ export default function Vault() {
   //   address: '0x08eccD9A9A8845Adc96A4e9a8c5f925698d5D532'
   // }
 
-  // state.vaults = [];
-  // state.vaults.push(tempData);
-
   if (state.vaults.length === 0) {
     return (
       <Layout title="Vault">
