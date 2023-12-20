@@ -27,7 +27,7 @@ export default function VaultPool() {
   const pool = state.vault_pools.find((p) => p.address == router.query.vault);
 
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(0);
   const [mode, setMode] = useState(Mode.Deposit);
   const [amount, setAmount] = useState(0);
@@ -103,6 +103,7 @@ export default function VaultPool() {
     setSymbol(currency);
     setData(data);
     setBalance(Number(formatUnits(avBalance)));
+    setLoading(false);
   }
 
   useEffect(() => {
