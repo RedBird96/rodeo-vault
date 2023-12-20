@@ -347,8 +347,8 @@ var pools = []*PoolInfo{
 
 var vaultPools = []*VaultPoolInfo{
 	&VaultPoolInfo{
-		Asset:   "0x5979D7b546E38E414F7E9822514be443A4800529",
-		Address: "0xE946Dd7d03F6F5C440F68c84808Ca88d26475FC5",
+		Asset:   "0xCa13ea158e11DE30FF5FBb37d231C9B93849B2BA",
+		Address: "0x08eccD9A9A8845Adc96A4e9a8c5f925698d5D532",
 		Slug:    "ETH/wETH/stETH/wstETH",
 
 		GrossAPY:       8,
