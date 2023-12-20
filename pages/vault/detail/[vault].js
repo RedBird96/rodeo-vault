@@ -152,7 +152,7 @@ export default function VaultPool() {
       setAmount(val);
       return; 
     }
-    var pattern = /^[1-9]\d*(?:\.\d{0,8})?$/;
+    var pattern = /^[0-9]\d*(?:\.\d{0,8})?$/;
     if (!pattern.test(val))
       return;
 
