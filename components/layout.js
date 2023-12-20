@@ -183,6 +183,7 @@ export default function Layout({
 
           {networkName != "arbitrum" &&
           networkName != "arbitrum-rinkeby" &&
+          networkName != "sepolia" &&
           networkName != "localhost" ? (
             <div
               style={{
