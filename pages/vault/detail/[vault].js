@@ -68,7 +68,7 @@ export default function VaultPool() {
     const lendingAddress = await strategyContract.lendingLogic();
     const lendingContract = contracts.lendingLogic(lendingAddress);
 
-    //todo test for remove
+    //todo test
     // const [_totalAssest, debtAsset, netAsset, _ratio] = 
     //   await lendingContract.getNetAssetsInfo(address);
     const _totalAssest = ZERO;
