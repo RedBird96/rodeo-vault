@@ -128,7 +128,7 @@ function OverviewVault({index, vault}) {
       <div className="overview-flex">
         <div className="flex-1 label">TVL ({symbol})</div>
         <div>
-          {formatKNumber(tvl, 2)}
+          {formatNumber(tvl, 2)}
         </div>
       </div>
 
@@ -139,7 +139,7 @@ function OverviewVault({index, vault}) {
       <div className="overview-flex">
         <div className="flex-1 label">Cap ({symbol})</div>
         <div>
-          {formatKNumber(capacity, 0)}
+          {formatNumber(capacity, 0)}
         </div>
       </div>
       <div className="overview-flex">
