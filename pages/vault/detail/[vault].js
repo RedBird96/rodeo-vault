@@ -28,6 +28,7 @@ export default function VaultPool() {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [disabled, setDisabled] = useState(true);
   const [balance, setBalance] = useState(0);
   const [mode, setMode] = useState(Mode.Deposit);
   const [amount, setAmount] = useState(0);
@@ -83,7 +84,7 @@ export default function VaultPool() {
 
     const Aamount = await assetContract.allowance(address, pool.address);
     setAllowanceAmount(Number(formatUnits(Aamount)));
-    if (Number(formatUnits(Aamount)) > amount) {
+    if (Number(formatUnits(Aamount)) >= amount) {
       setAssetAllowance(true);
     }
     const data = {
@@ -103,6 +104,7 @@ export default function VaultPool() {
     setSymbol(currency);
     setData(data);
     setBalance(Number(formatUnits(avBalance)));
+    setDisabled(false);
     setLoading(false);
   }
 
@@ -129,7 +131,9 @@ export default function VaultPool() {
       setEstMinWithdrawl(amount - lossAmount);
     }
 
-    if (allowanceAmount > amount) {
+    if (allowanceAmount < amount) {
+      setAssetAllowance(false);
+    } else {
       setAssetAllowance(true);
     }
   }, [amount]);
@@ -150,14 +154,13 @@ export default function VaultPool() {
       return;
 
     setAmount(val);
-
   }
 
   async function onDeposit() {
 
     if (balance < amount) {
       setError("Not enough balance");
-      setLoading(false);
+      setDisabled(false);
       return;
     }
 
@@ -175,9 +178,8 @@ export default function VaultPool() {
       console.error(e);
       setError(formatError(e));
       if (onError) onError(e);
-    } finally {
-      setLoading(false);
     }
+    setDisabled(false);
 
   }
   
@@ -185,7 +187,7 @@ export default function VaultPool() {
 
     if (data.myNetLP < amount) {
       setError("Not enough amount");
-      setLoading(false);
+      setDisabled(false);
       return;
     }
 
@@ -204,9 +206,8 @@ export default function VaultPool() {
       console.error(e);
       setError(formatError(e));
       if (onError) onError(e);
-    } finally {
-      setLoading(false);
     }
+    setDisabled(false);
   }
 
   async function onAllow() {
@@ -221,17 +222,20 @@ export default function VaultPool() {
         networkName
       );
       fetchDetails();
+      console.log("call ended");
     } catch (e) {
       console.error(e);
       setError(formatError(e));
       if (onError) onError(e);
-    } finally {
-      setLoading(false);
     }
+    setDisabled(false);
+    console.log("call ended2");
   }
 
   function handleAction() {
-    setLoading(true);
+    if (amount == 0)
+      return;
+    setDisabled(true);
     setError("");
     if (mode == Mode.Deposit) {
       if (!assetAllowance) {
@@ -245,7 +249,7 @@ export default function VaultPool() {
   }
 
   return (
-    <Layout title="Vault stETH" backLink="/vault">
+    <Layout title={"Vault " + symbol} backLink="/vault">
       <h1 className="title">Details</h1>
       <div className="grid-2--custom gap-6">
         <div>
@@ -393,12 +397,12 @@ export default function VaultPool() {
             />
             <button 
               className="button w-full"
-              disabled = {loading}
+              disabled = {disabled}
               onClick={() => handleAction()}
             >
               {
                 mode == Mode.Deposit ?
-                assetAllowance ? `Approve ${symbol}` :
+                !assetAllowance ? `Approve ${symbol}` :
                 `Deposit ${symbol}` : `Withdraw ${symbol}`
               }
             </button>
