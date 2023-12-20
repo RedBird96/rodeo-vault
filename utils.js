@@ -130,41 +130,41 @@ export function useGlobalState() {
     state.vault_pools.push(tempData);
     ////////////////////////////////////
 
-    for (let p of state.pools) {
-      p.borrowMin = parseUnits(p.borrowMin || "0", 0);
-      p.cap = parseUnits(p.cap || "0", 0);
-      p.index = parseUnits(p.index || "0", 0);
-      p.shares = parseUnits(p.shares || "0", 0);
-      p.supply = parseUnits(p.supply || "0", 0);
-      p.borrow = parseUnits(p.borrow || "0", 0);
-      p.rate = parseUnits(p.rate || "0", 0);
-      p.price = parseUnits(p.price || "0", 0);
-      p.lmRate = await call(
-        signer,
-        contracts.liquidityMining,
-        "rewardPerDay--uint256"
-      );
-      p.lmBalance = await call(
-        signer,
-        contracts.liquidityMining,
-        "poolInfo-uint256-uint256",
-        0
-      );
-      p.utilization = p.supply.gt(0) ? p.borrow.mul(ONE).div(p.supply) : ZERO;
-      p.apr = p.rate.mul(YEAR).mul(p.utilization).div(ONE);
-      p.conversionRate = p.supply.mul(ONE).div(p.shares);
-      const tokenPrice = await call(
-        signer,
-        contracts.tokenOracle,
-        "latestAnswer--int256"
-      );
-      p.lmApr = p.lmBalance.gt(0)
-        ? p.lmRate
-            .mul(365)
-            .mul(tokenPrice)
-            .div(p.lmBalance.mul(p.conversionRate).div(ONE6))
-        : ZERO;
-    }
+    // for (let p of state.pools) {
+    //   p.borrowMin = parseUnits(p.borrowMin || "0", 0);
+    //   p.cap = parseUnits(p.cap || "0", 0);
+    //   p.index = parseUnits(p.index || "0", 0);
+    //   p.shares = parseUnits(p.shares || "0", 0);
+    //   p.supply = parseUnits(p.supply || "0", 0);
+    //   p.borrow = parseUnits(p.borrow || "0", 0);
+    //   p.rate = parseUnits(p.rate || "0", 0);
+    //   p.price = parseUnits(p.price || "0", 0);
+    //   p.lmRate = await call(
+    //     signer,
+    //     contracts.liquidityMining,
+    //     "rewardPerDay--uint256"
+    //   );
+    //   p.lmBalance = await call(
+    //     signer,
+    //     contracts.liquidityMining,
+    //     "poolInfo-uint256-uint256",
+    //     0
+    //   );
+    //   p.utilization = p.supply.gt(0) ? p.borrow.mul(ONE).div(p.supply) : ZERO;
+    //   p.apr = p.rate.mul(YEAR).mul(p.utilization).div(ONE);
+    //   p.conversionRate = p.supply.mul(ONE).div(p.shares);
+    //   const tokenPrice = await call(
+    //     signer,
+    //     contracts.tokenOracle,
+    //     "latestAnswer--int256"
+    //   );
+    //   p.lmApr = p.lmBalance.gt(0)
+    //     ? p.lmRate
+    //         .mul(365)
+    //         .mul(tokenPrice)
+    //         .div(p.lmBalance.mul(p.conversionRate).div(ONE6))
+    //     : ZERO;
+    // }
 
     for (let v of state.vault_pools) {
       v.tvl = parseUnits(/*v.tvl || */"0", 0);
@@ -174,111 +174,111 @@ export function useGlobalState() {
       v.net_apy = v.gross_apy * (1 - v.performance_fee);
     }
 
-    for (let s of state.strategies) {
-      s.cap = parseUnits(s.cap || "0", 0);
-      s.apy = parseUnits(s.apy || "0", 0);
-      s.tvl = parseUnits(s.tvl || "0", 0);
-      s.tvlTotal = parseUnits(s.tvlTotal || "0", 0);
+    // for (let s of state.strategies) {
+    //   s.cap = parseUnits(s.cap || "0", 0);
+    //   s.apy = parseUnits(s.apy || "0", 0);
+    //   s.tvl = parseUnits(s.tvl || "0", 0);
+    //   s.tvlTotal = parseUnits(s.tvlTotal || "0", 0);
 
-      const defaultLeverage = s.apyType === "traderjoe" ? "1" : "5";
-      s.leverage = parseUnits(defaultLeverage, 18);
-      s.apyWithLeverage = s.apy;
-      try {
-        const pool = state.pools[0]; // TODO pick better
-        s.apyWithLeverage = s.apy
-          .mul(s.leverage)
-          .div(ONE)
-          .sub(pool.rate.mul(YEAR).mul(s.leverage.sub(ONE)).div(ONE));
-        if (s.apyWithLeverage.lt(0)) {
-          s.leverage = ONE;
-          s.apyWithLeverage = s.apy;
-        }
-      } catch (e) {}
-    }
-    state.strategies.push({
-      index: 22,
-      slug: "traderjoe-eth-usdc",
-      name: "USDC/ETH",
-      protocol: "TraderJoe",
-      icon: "/protocols/traderjoe.png",
-      address: "0x5f06285DCeB3B19e77F49B64Eb2A78BBF423A863",
-      status: 4,
-      cap: ZERO,
-      apy: ZERO,
-      tvl: ZERO,
-      tvlTotal: ZERO,
-      hidden: true,
-    });
-    state.strategies.push({
-      index: 31,
-      slug: "traderjoe-arb-eth",
-      name: "ARB/ETH",
-      protocol: "TraderJoe",
-      icon: "/protocols/traderjoe.png",
-      address: "0xbdb9615F6937a7B3632B4ef8b575BEcE0A0141d4",
-      status: 4,
-      cap: ZERO,
-      apy: ZERO,
-      tvl: ZERO,
-      tvlTotal: ZERO,
-      hidden: true,
-    });
-    state.strategies.push({
-      index: 23,
-      slug: "traderjoe-magic-eth",
-      name: "MAGIC/ETH",
-      protocol: "TraderJoe",
-      icon: "/protocols/traderjoe.png",
-      address: "0x0BEe104911cd5957B0847935286E3C5C0CAE9560",
-      status: 4,
-      cap: ZERO,
-      apy: ZERO,
-      tvl: ZERO,
-      tvlTotal: ZERO,
-      hidden: true,
-    });
-    state.strategies.push({
-      index: 34,
-      slug: "traderjoe-joe-eth",
-      name: "JOE/ETH",
-      protocol: "TraderJoe",
-      icon: "/protocols/traderjoe.png",
-      address: "0xD8aF3FCdC7f2dd7abA4D18c838CF017be98d7ea5",
-      status: 4,
-      cap: ZERO,
-      apy: ZERO,
-      tvl: ZERO,
-      tvlTotal: ZERO,
-      hidden: true,
-    });
-    state.strategies.push({
-      index: 35,
-      slug: "balancer-rdnt-eth",
-      name: "RDNT/ETH",
-      protocol: "Balancer",
-      icon: "/protocols/balancer.svg",
-      address: "0x2882BE90D7150D26EEaf0A6791e5a6B2b2Fa1a05",
-      status: 4,
-      cap: ZERO,
-      apy: ZERO,
-      tvl: ZERO,
-      tvlTotal: ZERO,
-      hidden: true,
-    });
-    state.strategies.push({
-      index: 16,
-      slug: "curve-tricrypto",
-      name: "WBTC/ETH/USDT",
-      protocol: "Curve",
-      icon: "/protocols/curve.svg",
-      address: "0x7dD41e74f44175fBf148a9E7fc18dF69EdF9cda6",
-      status: 4,
-      cap: ZERO,
-      apy: ZERO,
-      tvl: ZERO,
-      tvlTotal: ZERO,
-      hidden: true,
-    });
+    //   const defaultLeverage = s.apyType === "traderjoe" ? "1" : "5";
+    //   s.leverage = parseUnits(defaultLeverage, 18);
+    //   s.apyWithLeverage = s.apy;
+    //   try {
+    //     const pool = state.pools[0]; // TODO pick better
+    //     s.apyWithLeverage = s.apy
+    //       .mul(s.leverage)
+    //       .div(ONE)
+    //       .sub(pool.rate.mul(YEAR).mul(s.leverage.sub(ONE)).div(ONE));
+    //     if (s.apyWithLeverage.lt(0)) {
+    //       s.leverage = ONE;
+    //       s.apyWithLeverage = s.apy;
+    //     }
+    //   } catch (e) {}
+    // }
+    // state.strategies.push({
+    //   index: 22,
+    //   slug: "traderjoe-eth-usdc",
+    //   name: "USDC/ETH",
+    //   protocol: "TraderJoe",
+    //   icon: "/protocols/traderjoe.png",
+    //   address: "0x5f06285DCeB3B19e77F49B64Eb2A78BBF423A863",
+    //   status: 4,
+    //   cap: ZERO,
+    //   apy: ZERO,
+    //   tvl: ZERO,
+    //   tvlTotal: ZERO,
+    //   hidden: true,
+    // });
+    // state.strategies.push({
+    //   index: 31,
+    //   slug: "traderjoe-arb-eth",
+    //   name: "ARB/ETH",
+    //   protocol: "TraderJoe",
+    //   icon: "/protocols/traderjoe.png",
+    //   address: "0xbdb9615F6937a7B3632B4ef8b575BEcE0A0141d4",
+    //   status: 4,
+    //   cap: ZERO,
+    //   apy: ZERO,
+    //   tvl: ZERO,
+    //   tvlTotal: ZERO,
+    //   hidden: true,
+    // });
+    // state.strategies.push({
+    //   index: 23,
+    //   slug: "traderjoe-magic-eth",
+    //   name: "MAGIC/ETH",
+    //   protocol: "TraderJoe",
+    //   icon: "/protocols/traderjoe.png",
+    //   address: "0x0BEe104911cd5957B0847935286E3C5C0CAE9560",
+    //   status: 4,
+    //   cap: ZERO,
+    //   apy: ZERO,
+    //   tvl: ZERO,
+    //   tvlTotal: ZERO,
+    //   hidden: true,
+    // });
+    // state.strategies.push({
+    //   index: 34,
+    //   slug: "traderjoe-joe-eth",
+    //   name: "JOE/ETH",
+    //   protocol: "TraderJoe",
+    //   icon: "/protocols/traderjoe.png",
+    //   address: "0xD8aF3FCdC7f2dd7abA4D18c838CF017be98d7ea5",
+    //   status: 4,
+    //   cap: ZERO,
+    //   apy: ZERO,
+    //   tvl: ZERO,
+    //   tvlTotal: ZERO,
+    //   hidden: true,
+    // });
+    // state.strategies.push({
+    //   index: 35,
+    //   slug: "balancer-rdnt-eth",
+    //   name: "RDNT/ETH",
+    //   protocol: "Balancer",
+    //   icon: "/protocols/balancer.svg",
+    //   address: "0x2882BE90D7150D26EEaf0A6791e5a6B2b2Fa1a05",
+    //   status: 4,
+    //   cap: ZERO,
+    //   apy: ZERO,
+    //   tvl: ZERO,
+    //   tvlTotal: ZERO,
+    //   hidden: true,
+    // });
+    // state.strategies.push({
+    //   index: 16,
+    //   slug: "curve-tricrypto",
+    //   name: "WBTC/ETH/USDT",
+    //   protocol: "Curve",
+    //   icon: "/protocols/curve.svg",
+    //   address: "0x7dD41e74f44175fBf148a9E7fc18dF69EdF9cda6",
+    //   status: 4,
+    //   cap: ZERO,
+    //   apy: ZERO,
+    //   tvl: ZERO,
+    //   tvlTotal: ZERO,
+    //   hidden: true,
+    // });
 
     setState(state);
   }
