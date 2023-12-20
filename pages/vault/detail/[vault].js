@@ -139,7 +139,10 @@ export default function VaultPool() {
   }, [amount]);
 
   function onMax() {
-    setAmount(formatUnits(balance, 2).replaceAll(",", ""));
+    if (mode == Mode.Deposit)
+      setAmount(balance);
+    else
+      setAmount(data.myNetLP); 
   }
 
   function onAmount(val) {
@@ -369,7 +372,7 @@ export default function VaultPool() {
               <label className="label flex">
                 <div className="flex-1">Amount</div >
                 <div>
-                  {formatNumber(balance, 2)} {symbol} {" "}
+                  {formatNumber(mode == Mode.Deposit ? balance : data.myNetLP, 2)} {symbol} {" "}
                   <a onClick={onMax}>Max</a>
                 </div>
               </label>
