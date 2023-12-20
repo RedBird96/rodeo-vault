@@ -15,18 +15,19 @@ import * as wagmiChains from "wagmi/chains";
 import { getDefaultWallets } from "@rainbow-me/rainbowkit";
 import Icon from "./components/icon";
 
-const isLocal = true;
+const isLocal = false;
   // typeof window !== "undefined"
   //   ? window.location.hostname === "localhost"
   //   : false;
 
-const isStaging = process.env.NEXT_PUBLIC_RODEO_ENV == "staging";
+const isStaging = true; //process.env.NEXT_PUBLIC_RODEO_ENV == "staging";
 
 export const apiServerHost = isLocal
   ? "http://localhost:4000"
   : isStaging
-  ? " https://api-testing.rodeofinance.xyz"
+  ? "https://api-testing.rodeofinance.xyz"
   : "https://api.rodeofinance.xyz";
+
 
 export const ZERO = ethers.utils.parseUnits("0");
 export const ONE = ethers.utils.parseUnits("1");
@@ -97,7 +98,7 @@ const globalStateAtom = atom({
   assets: [],
   pools: [],
   strategies: [],
-  vault_pools: []
+  vaults: []
 });
 
 export function useGlobalState() {
@@ -149,12 +150,12 @@ export function useGlobalState() {
         : ZERO;
     }
 
-    for (let v of state.vault_pools) {
+    for (let v of state.vaults) {
       v.tvl = parseUnits(/*v.tvl || */"0", 0);
       v.cap = parseUnits(/*v.cap || */"0", 0);
       v.locked_amount = parseUnits(/*v.locked_amount || */"0", 0);
       v.volume = parseUnits(/*v.volume || */"0", 0);
-      v.net_apy = v.gross_apy * (1 - v.performance_fee);
+      v.net_apy = v.grossApy * (1 - v.performanceFee);
     }
 
     for (let s of state.strategies) {

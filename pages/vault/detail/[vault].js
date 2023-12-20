@@ -24,7 +24,7 @@ export default function VaultPool() {
   const { provider, signer, address, networkName, contracts, chainId } =
     useWeb3();
   
-  const pool = state.vault_pools.find((p) => p.address == router.query.vault);
+  const pool = state.vaults.find((p) => p.address == router.query.vault);
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -93,10 +93,10 @@ export default function VaultPool() {
       wstLockedUSDAmount: Number(formatUnits(ta)) * wstPrice,
       ethDepositedAmount: 0,
       totalDepositedAmount: 0,
-      depositedGrossAPY: Number(pool.gross_apy),
-      annualFee: Number(pool.management_fee),
-      performanceFee: Number(pool.performance_fee),
-      exitFee: Number(pool.exit_fee),
+      depositedGrossAPY: Number(pool.grossApy),
+      annualFee: Number(pool.managementFee),
+      performanceFee: Number(pool.performanceFee),
+      exitFee: Number(pool.exitFee),
       myNetValue: Number(formatUnits(netAsset)),
       myNetEarning: Number(formatUnits(debtAsset)),
       myNetLP: Number(formatUnits(lpBalance))

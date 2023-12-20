@@ -23,10 +23,10 @@ export default function Vault() {
 
   // test Data
   // const tempData = {
-  //   gross_apy: 8,
-  //   performance_fee: 0.62,
-  //   exit_fee: 0.02,
-  //   management_fee: 0.77,
+  //   grossApy: 8,
+  //   performanceFee: 0.62,
+  //   exitFee: 0.02,
+  //   managementFee: 0.77,
   //   net_apy: 0.2,
   //   tvl: 0,
   //   cap: 0,
@@ -36,10 +36,10 @@ export default function Vault() {
   //   address: '0x08eccD9A9A8845Adc96A4e9a8c5f925698d5D532'
   // }
 
-  // state.vault_pools = [];
-  // state.vault_pools.push(tempData);
+  // state.vaults = [];
+  // state.vaults.push(tempData);
 
-  if (state.vault_pools.length === 0) {
+  if (state.vaults.length === 0) {
     return (
       <Layout title="Vault">
         <h1 className="title">Overview</h1>
@@ -55,7 +55,7 @@ export default function Vault() {
       <h1 className="title">Overview</h1>
       <div className="grid-2 gap-6">
         {
-          state.vault_pools.map((v, i) => {
+          state.vaults.map((v, i) => {
             return (
               <OverviewVault
                 index = {i}
@@ -89,7 +89,7 @@ function OverviewVault({index, vault}) {
   const [tvl, setTVL] = useState(0);
   const [capacity, setCapacity] = useState(0);
   const [percentage, setPercentage] = useState(0);
-
+  
   async function fetchData() {
     if (!assetContract)  return;
     const assetBalance = await assetContract.balanceOf(address);
@@ -116,7 +116,7 @@ function OverviewVault({index, vault}) {
       <div className="overview-flex">
         <div className="flex-1 label">Gross APY</div>
         <div>
-          {formatNumber(vault.gross_apy)}%
+          {formatNumber(vault.grossApy)}%
         </div>
       </div>
       <div className="overview-flex">
