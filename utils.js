@@ -110,10 +110,14 @@ export function useGlobalState() {
   const [state, setState] = useAtom(globalStateAtom);
 
   async function fetchData() {
-    const res = await fetch(apiServerHost, { mode: "cors" });
-    const state = await res.json();
+    // const res = await fetch(apiServerHost, { mode: "cors" });
+    // const state = await res.json();
 
     ////////test data//////////////////
+    let state = {
+      vault_pools:[]
+    };// = await res.json();
+
     const tempData = {
       gross_apy: 8,
       performance_fee: 0.62,
@@ -166,13 +170,13 @@ export function useGlobalState() {
     //     : ZERO;
     // }
 
-    for (let v of state.vault_pools) {
-      v.tvl = parseUnits(/*v.tvl || */"0", 0);
-      v.cap = parseUnits(/*v.cap || */"0", 0);
-      v.locked_amount = parseUnits(/*v.locked_amount || */"0", 0);
-      v.volume = parseUnits(/*v.volume || */"0", 0);
-      v.net_apy = v.gross_apy * (1 - v.performance_fee);
-    }
+    // for (let v of state.vault_pools) {
+    //   v.tvl = parseUnits(/*v.tvl || */"0", 0);
+    //   v.cap = parseUnits(/*v.cap || */"0", 0);
+    //   v.locked_amount = parseUnits(/*v.locked_amount || */"0", 0);
+    //   v.volume = parseUnits(/*v.volume || */"0", 0);
+    //   v.net_apy = v.gross_apy * (1 - v.performance_fee);
+    // }
 
     // for (let s of state.strategies) {
     //   s.cap = parseUnits(s.cap || "0", 0);
