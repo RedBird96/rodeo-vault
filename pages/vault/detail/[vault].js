@@ -254,7 +254,7 @@ export default function VaultPool() {
   }
 
   return (
-    <Layout title={"Vault " + symbol} backLink="/vault">
+    <Layout title={"Vault " + symbol} backLink="/vault" service = {ServiceMode.Vault}>
       <h1 className="title">Details</h1>
       <div className="grid-2--custom gap-6">
         <div>

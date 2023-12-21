@@ -43,7 +43,7 @@ export default function Vault() {
 
   if (state.vaults.length === 0) {
     return (
-      <Layout title="Vault">
+      <Layout title="Vault" service = {ServiceMode.Vault}>
         <h1 className="title">Overview</h1>
         <div className="loading">Loading...</div>
         <h1 className="title" style={{ marginTop: 24 }}>Positions</h1>
@@ -53,7 +53,7 @@ export default function Vault() {
   }
   
   return (
-    <Layout title="Vault">
+    <Layout title="Vault" service = {ServiceMode.Vault}>
       <h1 className="title">Overview</h1>
       <div className="grid-2 gap-6">
         {

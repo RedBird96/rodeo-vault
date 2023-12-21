@@ -16,7 +16,8 @@ export default function Layout({
   children,
   navigation,
   backLink,
-  hideWarning
+  hideWarning,
+  service = ServiceMode.Farms
 }) {
   
   const router = useRouter();
@@ -38,7 +39,7 @@ export default function Layout({
   }
 
   useEffect(() => {
-    if (networkName != "sepolia")
+    if (service != ServiceMode.Vault && networkName != "sepolia")
       fetchData();
   }, [address, networkName]);
 
@@ -184,7 +185,7 @@ export default function Layout({
           ) : null}
 
           {
-          networkName != "sepolia" && 
+          service != ServiceMode.Vault &&
           networkName != "arbitrum" &&
           networkName != "arbitrum-rinkeby" &&
           networkName != "localhost" ? (
@@ -199,9 +200,26 @@ export default function Layout({
               Wrong network connected. Switch to Arbitrum
             </div>
           ) : (
+            service == ServiceMode.Vault && 
+            networkName != "sepolia" ? (
+              <div
+                style={{
+                  fontSize: 18,
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  padding: "10vh 0",
+                }}
+              >
+                Wrong network connected. Switch to Sepolia
+              </div>
+
+            )
+            : (
               <ErrorBoundary>{children}</ErrorBoundary>
             )
-          }
+          )
+        }
+            
         </div>
         <Footer />
       </div>
