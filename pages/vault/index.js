@@ -20,7 +20,10 @@ import Layout from "../../components/layout";
 
 export default function Vault() {
 
-  const { state } = useGlobalState();
+  const { provider, signer, address, networkName, contracts, chainId } =
+    useWeb3();
+
+  const { state } = useGlobalState(networkName);
 
   // test Data
   // const tempData = {

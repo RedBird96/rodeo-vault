@@ -101,7 +101,7 @@ const globalStateAtom = atom({
   vaults: []
 });
 
-export function useGlobalState() {
+export function useGlobalState(network = "arbitrum") {
   const provider = wagmiUseProvider();
   const signerData = wagmiUseSigner();
   const signer =
@@ -114,42 +114,44 @@ export function useGlobalState() {
     const res = await fetch(apiServerHost, { mode: "cors" });
     const state = await res.json();
 
-    for (let p of state.pools) {
-      p.borrowMin = parseUnits(p.borrowMin || "0", 0);
-      p.cap = parseUnits(p.cap || "0", 0);
-      p.index = parseUnits(p.index || "0", 0);
-      p.shares = parseUnits(p.shares || "0", 0);
-      p.supply = parseUnits(p.supply || "0", 0);
-      p.borrow = parseUnits(p.borrow || "0", 0);
-      p.rate = parseUnits(p.rate || "0", 0);
-      p.price = parseUnits(p.price || "0", 0);
-      p.lmRate = await call(
-        signer,
-        contracts.liquidityMining,
-        "rewardPerDay--uint256"
-      );
-      p.lmBalance = await call(
-        signer,
-        contracts.liquidityMining,
-        "poolInfo-uint256-uint256",
-        0
-      );
-      p.utilization = p.supply.gt(0) ? p.borrow.mul(ONE).div(p.supply) : ZERO;
-      p.apr = p.rate.mul(YEAR).mul(p.utilization).div(ONE);
-      p.conversionRate = p.supply.mul(ONE).div(p.shares);
-      const tokenPrice = await call(
-        signer,
-        contracts.tokenOracle,
-        "latestAnswer--int256"
-      );
-      p.lmApr = p.lmBalance.gt(0)
-        ? p.lmRate
-            .mul(365)
-            .mul(tokenPrice)
-            .div(p.lmBalance.mul(p.conversionRate).div(ONE6))
-        : ZERO;
-    }
+    if (network != "sepolia") {
+      for (let p of state.pools) {
+        p.borrowMin = parseUnits(p.borrowMin || "0", 0);
+        p.cap = parseUnits(p.cap || "0", 0);
+        p.index = parseUnits(p.index || "0", 0);
+        p.shares = parseUnits(p.shares || "0", 0);
+        p.supply = parseUnits(p.supply || "0", 0);
+        p.borrow = parseUnits(p.borrow || "0", 0);
+        p.rate = parseUnits(p.rate || "0", 0);
+        p.price = parseUnits(p.price || "0", 0);
+        p.lmRate = await call(
+          signer,
+          contracts.liquidityMining,
+          "rewardPerDay--uint256"
+        );
+        p.lmBalance = await call(
+          signer,
+          contracts.liquidityMining,
+          "poolInfo-uint256-uint256",
+          0
+        );
+        p.utilization = p.supply.gt(0) ? p.borrow.mul(ONE).div(p.supply) : ZERO;
+        p.apr = p.rate.mul(YEAR).mul(p.utilization).div(ONE);
+        p.conversionRate = p.supply.mul(ONE).div(p.shares);
+        const tokenPrice = await call(
+          signer,
+          contracts.tokenOracle,
+          "latestAnswer--int256"
+        );
+        p.lmApr = p.lmBalance.gt(0)
+          ? p.lmRate
+              .mul(365)
+              .mul(tokenPrice)
+              .div(p.lmBalance.mul(p.conversionRate).div(ONE6))
+          : ZERO;
+      }  
 
+    }
     for (let v of state.vaults) {
       v.tvl = parseUnits(/*v.tvl || */"0", 0);
       v.cap = parseUnits(/*v.cap || */"0", 0);

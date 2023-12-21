@@ -20,9 +20,9 @@ import Layout from "../../../components/layout";
 
 export default function VaultPool() {
   const router = useRouter();
-  const { state } = useGlobalState();
   const { provider, signer, address, networkName, contracts, chainId } =
     useWeb3();
+  const { state } = useGlobalState(networkName);
   
   const pool = state.vaults.find((p) => p.address == router.query.vault);
 

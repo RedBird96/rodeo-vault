@@ -37,7 +37,8 @@ export default function Layout({
   }
 
   useEffect(() => {
-    fetchData();
+    if (networkName != "sepolia")
+      fetchData();
   }, [address, networkName]);
 
   useEffect(() => {
