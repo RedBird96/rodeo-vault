@@ -24,7 +24,7 @@ export default function Vault() {
   const { provider, signer, address, networkName, contracts, chainId } =
     useWeb3();
 
-  const { state } = useGlobalState(ServiceMode.Vault);
+  const { state } = useGlobalState();
 
   // test Data
   // const tempData = {

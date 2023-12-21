@@ -109,7 +109,10 @@ const globalStateAtom = atom({
   vaults: []
 });
 
-export function useGlobalState(serviceMode = ServiceMode.Farms) {
+export function useGlobalState() {
+
+  const { networkName } =
+    useWeb3();
   const provider = wagmiUseProvider();
   const signerData = wagmiUseSigner();
   const signer =
@@ -122,24 +125,24 @@ export function useGlobalState(serviceMode = ServiceMode.Farms) {
     const res = await fetch(apiServerHost, { mode: "cors" });
     const state = await res.json();
 
-    if (serviceMode == ServiceMode.Vault) {
-      for (let v of state.vaults) {
-        v.tvl = parseUnits(/*v.tvl || */"0", 0);
-        v.cap = parseUnits(/*v.cap || */"0", 0);
-        v.locked_amount = parseUnits(/*v.locked_amount || */"0", 0);
-        v.volume = parseUnits(/*v.volume || */"0", 0);
-        v.net_apy = v.grossApy * (1 - v.performanceFee);
-      }
-    } else {
-      for (let p of state.pools) {
-        p.borrowMin = parseUnits(p.borrowMin || "0", 0);
-        p.cap = parseUnits(p.cap || "0", 0);
-        p.index = parseUnits(p.index || "0", 0);
-        p.shares = parseUnits(p.shares || "0", 0);
-        p.supply = parseUnits(p.supply || "0", 0);
-        p.borrow = parseUnits(p.borrow || "0", 0);
-        p.rate = parseUnits(p.rate || "0", 0);
-        p.price = parseUnits(p.price || "0", 0);
+    for (let v of state.vaults) {
+      v.tvl = parseUnits(/*v.tvl || */"0", 0);
+      v.cap = parseUnits(/*v.cap || */"0", 0);
+      v.locked_amount = parseUnits(/*v.locked_amount || */"0", 0);
+      v.volume = parseUnits(/*v.volume || */"0", 0);
+      v.net_apy = v.grossApy * (1 - v.performanceFee);
+    }
+
+    for (let p of state.pools) {
+      p.borrowMin = parseUnits(p.borrowMin || "0", 0);
+      p.cap = parseUnits(p.cap || "0", 0);
+      p.index = parseUnits(p.index || "0", 0);
+      p.shares = parseUnits(p.shares || "0", 0);
+      p.supply = parseUnits(p.supply || "0", 0);
+      p.borrow = parseUnits(p.borrow || "0", 0);
+      p.rate = parseUnits(p.rate || "0", 0);
+      p.price = parseUnits(p.price || "0", 0);
+      if (networkName != "sepolia") {  
         p.lmRate = await call(
           signer,
           contracts.liquidityMining,
@@ -151,9 +154,14 @@ export function useGlobalState(serviceMode = ServiceMode.Farms) {
           "poolInfo-uint256-uint256",
           0
         );
-        p.utilization = p.supply.gt(0) ? p.borrow.mul(ONE).div(p.supply) : ZERO;
-        p.apr = p.rate.mul(YEAR).mul(p.utilization).div(ONE);
-        p.conversionRate = p.supply.mul(ONE).div(p.shares);
+      } else {
+        p.lmRate = 0;
+        p.lmBalance = 0;
+      }
+      p.utilization = p.supply.gt(0) ? p.borrow.mul(ONE).div(p.supply) : ZERO;
+      p.apr = p.rate.mul(YEAR).mul(p.utilization).div(ONE);
+      p.conversionRate = p.supply.mul(ONE).div(p.shares);
+      if (networkName != "sepolia") {  
         const tokenPrice = await call(
           signer,
           contracts.tokenOracle,
@@ -165,8 +173,10 @@ export function useGlobalState(serviceMode = ServiceMode.Farms) {
               .mul(tokenPrice)
               .div(p.lmBalance.mul(p.conversionRate).div(ONE6))
           : ZERO;
-      }  
-    }
+      } else {
+        p.lmApr = 0;
+      }
+    }  
 
     for (let s of state.strategies) {
       s.cap = parseUnits(s.cap || "0", 0);

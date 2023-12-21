@@ -23,7 +23,7 @@ export default function VaultPool() {
   const router = useRouter();
   const { provider, signer, address, networkName, contracts, chainId } =
     useWeb3();
-  const { state } = useGlobalState(ServiceMode.Vault);
+  const { state } = useGlobalState();
   
   const pool = state.vaults.find((p) => p.address == router.query.vault);
 
