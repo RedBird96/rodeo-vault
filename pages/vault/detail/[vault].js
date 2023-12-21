@@ -15,6 +15,7 @@ import {
   formatError,
   contracts as addresses,
   ZERO,
+  ServiceMode
 } from "../../../utils";
 import Layout from "../../../components/layout";
 
@@ -22,7 +23,7 @@ export default function VaultPool() {
   const router = useRouter();
   const { provider, signer, address, networkName, contracts, chainId } =
     useWeb3();
-  const { state } = useGlobalState(networkName);
+  const { state } = useGlobalState(ServiceMode.Vault);
   
   const pool = state.vaults.find((p) => p.address == router.query.vault);
 

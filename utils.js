@@ -56,7 +56,15 @@ export const SILO_NAMES = {
 export const Mode = {
   Deposit: 0,
   Withdraw: 1
-}
+};
+
+export const ServiceMode = {
+  Farms: 0,
+  Earn: 1,
+  Vault: 2,
+  Positios: 3
+};
+
 export const contracts = {
   investor: "0x8accf43Dd31DfCd4919cc7d65912A475BfA60369",
   investorHelper: "0x6f456005A7CfBF0228Ca98358f60E6AE1d347E18",
@@ -101,7 +109,7 @@ const globalStateAtom = atom({
   vaults: []
 });
 
-export function useGlobalState(network = "arbitrum") {
+export function useGlobalState(serviceMode = ServiceMode.Farms) {
   const provider = wagmiUseProvider();
   const signerData = wagmiUseSigner();
   const signer =
@@ -114,7 +122,15 @@ export function useGlobalState(network = "arbitrum") {
     const res = await fetch(apiServerHost, { mode: "cors" });
     const state = await res.json();
 
-    if (network != "sepolia") {
+    if (serviceMode == ServiceMode.Vault) {
+      for (let v of state.vaults) {
+        v.tvl = parseUnits(/*v.tvl || */"0", 0);
+        v.cap = parseUnits(/*v.cap || */"0", 0);
+        v.locked_amount = parseUnits(/*v.locked_amount || */"0", 0);
+        v.volume = parseUnits(/*v.volume || */"0", 0);
+        v.net_apy = v.grossApy * (1 - v.performanceFee);
+      }
+    } else {
       for (let p of state.pools) {
         p.borrowMin = parseUnits(p.borrowMin || "0", 0);
         p.cap = parseUnits(p.cap || "0", 0);
@@ -150,14 +166,6 @@ export function useGlobalState(network = "arbitrum") {
               .div(p.lmBalance.mul(p.conversionRate).div(ONE6))
           : ZERO;
       }  
-
-    }
-    for (let v of state.vaults) {
-      v.tvl = parseUnits(/*v.tvl || */"0", 0);
-      v.cap = parseUnits(/*v.cap || */"0", 0);
-      v.locked_amount = parseUnits(/*v.locked_amount || */"0", 0);
-      v.volume = parseUnits(/*v.volume || */"0", 0);
-      v.net_apy = v.grossApy * (1 - v.performanceFee);
     }
 
     for (let s of state.strategies) {

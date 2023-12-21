@@ -9,15 +9,16 @@ import Logo from "./logo";
 import Icon from "./icon";
 import Footer from "./footer";
 import ErrorBoundary from "./errorBoundary";
-import { formatNumber, useWeb3 } from "../utils";
+import { formatNumber, useWeb3, ServiceMode } from "../utils";
 
 export default function Layout({
   title,
   children,
   navigation,
   backLink,
-  hideWarning,
+  hideWarning
 }) {
+  
   const router = useRouter();
   const { contracts, signer, address, networkName } = useWeb3();
   const dynamicTitle = `${title ? title + " | " : ""}Rodeo`;
@@ -182,9 +183,10 @@ export default function Layout({
             </div>
           ) : null}
 
-          {networkName != "arbitrum" &&
+          {
+          networkName != "sepolia" && 
+          networkName != "arbitrum" &&
           networkName != "arbitrum-rinkeby" &&
-          networkName != "sepolia" &&
           networkName != "localhost" ? (
             <div
               style={{
@@ -194,11 +196,12 @@ export default function Layout({
                 padding: "10vh 0",
               }}
             >
-              Wrong network connected. Switch to Arbitrum.
+              Wrong network connected. Switch to Arbitrum
             </div>
           ) : (
-            <ErrorBoundary>{children}</ErrorBoundary>
-          )}
+              <ErrorBoundary>{children}</ErrorBoundary>
+            )
+          }
         </div>
         <Footer />
       </div>
