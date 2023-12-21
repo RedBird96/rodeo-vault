@@ -14,6 +14,7 @@ import {
   formatKNumber,
   parseUnits,
   formatUnits,
+  EXPLORER_URLS
 } from "../../utils";
 import Layout from "../../components/layout";
 
@@ -106,7 +107,7 @@ function OverviewVault({index, vault}) {
     );
   }, [vault, address, networkName, contracts]);
 
-  const url = "https://arbiscan.io/address/" + vault.address;
+  const url = `https://${EXPLORER_URLS[networkName]}/address/` + vault.address;
   return (
     <div className="card mb-6">
       <h2 className="title">ETH/WETH/wstETH</h2>
