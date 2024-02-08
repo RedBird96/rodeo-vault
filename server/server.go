@@ -24,6 +24,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -67,11 +68,17 @@ var addressHelper = common.HexToAddress("0x988826F0fCDA660e769558A0bDDfE0ba6aDfF
 var addressInvestor = common.HexToAddress("0x8accf43Dd31DfCd4919cc7d65912A475BfA60369")
 var addressInvestorHelper = common.HexToAddress("0x6f456005A7CfBF0228Ca98358f60E6AE1d347E18")
 var addressToken = common.HexToAddress("0x033f193b3Fceb22a440e89A2867E8FEE181594D9")
+var addressVaultLogic = common.HexToAddress("0x79cf424266153Fa373f548D38E2AB2283a8775b7")
+var addressVault = common.HexToAddress("0x7141D7Fcff83ca8162D85e2978aAA4F149ab0CaE")
+var WSTETH_ADDR = common.HexToAddress("0x5979D7b546E38E414F7E9822514be443A4800529")
+var WETH_ADDR = common.HexToAddress("0x82aF49447D8a07e3bd95BD0d56f35241523fBab1")
 
 var chainId = int64(42161)
 var initialBlock = "121947000"
 var rpcMaxBlocksInBatch = uint64(1000)
 var isProduction = env("TELEGRAM_BOT_TOKEN", "") != ""
+var leverageLevel = 2
+var flashloanFee = 5
 
 func setup() {
 	mux.HandleFunc("/", handleOverview)
@@ -110,6 +117,7 @@ var tasks = []*Task{
 	{"historyPositions", 60 * 60, 0, taskHistoryPositions},
 	{"eventsEarns", 30 * 60, 0, taskEventsEarns},
 	{"eventsPositions", 5 * 60, 0, taskEventsPositions},
+	{"checkLeverage", 5 * 60, 0, taskCheckLeverageLevel},
 }
 
 type Task struct {
@@ -253,7 +261,11 @@ type DbPositionHistory struct {
 	Price       *BigInt   `json:"price"`
 }
 
-type VaultPool struct {
+type SwapCalldata struct {
+	Tx struct {
+		Data string `json:"data"`
+	} `json:"tx"`
+	ToAmount int `json:"toAmount"`
 }
 
 var assets = map[string]*AssetInfo{
@@ -853,6 +865,110 @@ func tasksRun() {
 	}
 }
 
+func readLeverageCalldata(src string, amount *big.Int) (string, *big.Int) {
+	header := "0x0502b1c5"
+	amountX := hexutil.Encode(common.LeftPadBytes(amount.Bytes(), 32))
+	minValue := big.NewInt(0)
+	minValue.Div(amount, big.NewInt(2))
+	amountMinX := hexutil.Encode(common.LeftPadBytes(minValue.Bytes(), 32))
+	newSrc := strings.Join([]string{strings.Repeat("0", 64-len(src[2:])), src[2:]}, "")
+	end := "0000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000180000000000000003b6d0340b0d62768e2fb9bd437a51b993b77b93ac9f249d58b1ccac8"
+	calldata := header + newSrc + amountX[2:] + amountMinX[2:] + end
+	return calldata, minValue
+}
+func readDeleverageCalldata(wstETHprice *big.Int, wETHprice *big.Int, src string, amount *big.Int) (string, *big.Int) {
+	totalAmount := big.NewInt(0)
+	feeAmount := big.NewInt(0)
+	feeAmount.Mul(amount, big.NewInt(int64(flashloanFee)))
+	feeAmount.Div(feeAmount, big.NewInt(int64(10000)))
+	totalAmount.Add(amount, feeAmount)
+	totalAmount.Mul(totalAmount, wETHprice)
+	totalAmount.Div(totalAmount, wstETHprice)
+	header := "0x0502b1c5"
+	amountX := hexutil.Encode(common.LeftPadBytes(totalAmount.Bytes(), 32))
+	minValue := totalAmount.Div(totalAmount, big.NewInt(int64(2)))
+	amountMinX := hexutil.Encode(common.LeftPadBytes(minValue.Bytes(), 32))
+	newSrc := strings.Join([]string{strings.Repeat("0", 64-len(src[2:])), src[2:]}, "")
+	end := "0000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000100000000000000003b6d0340b0d62768e2fb9bd437a51b993b77b93ac9f249d58b1ccac8"
+	calldata := header + newSrc + amountX[2:] + amountMinX[2:] + end
+	return calldata, minValue
+}
+func updateExchange() {
+	vaultLogicContract, err := NewVaultLogic(addressVaultLogic, client)
+	check(err)
+	tx, err := vaultLogicContract.UpdateExchangePrice(nextTxOpts())
+	if err != nil {
+		log.Println("UpdateExchangePrice: error:", err)
+		return
+	}
+	r, err := bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		log.Println("UpdateExchangePrice: error waiting:", err)
+		return
+	}
+	log.Println("UpdateExchangePrice: updated:", r.TxHash.Hex())
+}
+func taskCheckLeverageLevel() {
+	vaultContract, err := NewVault(addressVault, client)
+	check(err)
+	vaultLogicContract, err := NewVaultLogic(addressVaultLogic, client)
+	check(err)
+	colla, err := vaultLogicContract.Collateral(nil)
+	totalLockedAmount, err := vaultContract.TotalLockedAmount(nil)
+	avAmount, err := vaultLogicContract.AvailableLogicAmount(&bind.CallOpts{From: walletAddress})
+	level := int(colla.Div(colla, totalLockedAmount).Int64())
+	if level <= leverageLevel {
+		if avAmount.Cmp(big.NewInt(0)) > 0 {
+			ethAmount := new(big.Int)
+			ethAmount.Mul(avAmount, big.NewInt(int64(leverageLevel)))
+			calldata, min := readLeverageCalldata(WETH_ADDR.String(), ethAmount)
+			by, err := hexutil.Decode(calldata)
+			if err != nil {
+				log.Println("Decode error: error:", err)
+				return
+			}
+			tx, err := vaultLogicContract.Leverage(nextTxOpts(), avAmount, ethAmount, by, min)
+
+			if err != nil {
+				log.Println("Leverage: error:", err)
+				return
+			}
+			r, err := bind.WaitMined(context.Background(), client, tx)
+			if err != nil {
+				log.Println("Leverage: error waiting:", err)
+				return
+			}
+			log.Println("Leverage: updated:", r.TxHash.Hex())
+		}
+	} else {
+
+		ethAmount := new(big.Int)
+		ethAmount.Mul(avAmount, big.NewInt(int64(leverageLevel)))
+
+		wstETHPrice, _ := vaultLogicContract.GetAssestPrice(nil, &WSTETH_ADDR)
+		wETHPrice, _ := vaultLogicContract.GetAssestPrice(nil, &WETH_ADDR)
+
+		calldata, min := readDeleverageCalldata(wstETHPrice, wETHPrice, WSTETH_ADDR.String(), ethAmount)
+		by, err := hexutil.Decode(calldata)
+		if err != nil {
+			log.Println("Decode error: error:", err)
+			return
+		}
+		tx, err := vaultLogicContract.Deleverage(nextTxOpts(), avAmount, ethAmount, by, min)
+
+		if err != nil {
+			log.Println("Deleverage: error:", err)
+			return
+		}
+		r, err := bind.WaitMined(context.Background(), client, tx)
+		if err != nil {
+			log.Println("Deleverage: error waiting:", err)
+			return
+		}
+		log.Println("Deleverage: updated:", r.TxHash.Hex())
+	}
+	updateExchange()
+}
 func taskEarn() {
 	now := time.Now()
 	earns := []*DbEarn{}
