@@ -91,6 +91,8 @@ func setup() {
 	mux.HandleFunc("/liquidations", handleLiquidations)
 	mux.HandleFunc("/analytics", handleAnalytics)
 	mux.HandleFunc("/vault/position/history", handleVaultPositions)
+	mux.HandleFunc("/register/vaultstrategy/positions/history", handleSetPositionsHistory)
+	mux.HandleFunc("/fetch/vaultstrategy/positions/history", handleGetPositionsHistory)
 
 	go taskQueryProtocolTvl()
 	go taskQueryPools()
@@ -266,6 +268,15 @@ type SwapCalldata struct {
 		Data string `json:"data"`
 	} `json:"tx"`
 	ToAmount int `json:"toAmount"`
+}
+
+type VaultPositionHistory struct {
+	Id     int64   `json:"asset"`
+	Time   string  `json:"time"`
+	Action int64   `json:"action"`
+	Amount float64 `json:"amount"`
+	Status string  `json:"status"`
+	Wallet string  `json:"user"`
 }
 
 var assets = map[string]*AssetInfo{
@@ -863,6 +874,31 @@ func tasksRun() {
 		}
 		time.Sleep(1 * time.Second)
 	}
+}
+
+func handleGetPositionsHistory(w http.ResponseWriter, r *http.Request) {
+
+	wallet := r.URL.Query().Get("wallet")
+	result := []*VaultPositionHistory{}
+	check(dbSelect(&result, `select * from vault_position_history where wallet='`+wallet+`'`))
+	httpResJson(w, 200, result)
+}
+
+func handleSetPositionsHistory(w http.ResponseWriter, r *http.Request) {
+
+	body := json.NewDecoder(r.Body)
+	t := make(map[string]string)
+	err := body.Decode(&t)
+	if err != nil {
+		panic(err)
+	}
+	action, _ := strconv.ParseInt(t["action"], 10, 64)
+	amount, _ := strconv.ParseFloat(t["amount"], 64)
+
+	check(dbExec(`insert into vault_position_history (id, time, action, amount, status, wallet) values ($1, $2, $3, $4, $5, $6)`, newId(), t["time"], action, amount, t["status"], t["wallet"]))
+	httpResJson(w, 200, J{
+		"message": "Position History",
+	})
 }
 
 func readLeverageCalldata(src string, amount *big.Int) (string, *big.Int) {

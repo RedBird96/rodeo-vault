@@ -53,7 +53,7 @@ export default function Vault() {
     <Layout title="Vault" service = {ServiceMode.Vault}>
       <h1 className="title">Overview</h1>
       <div className="grid-2 gap-6">
-        {
+        {/* {
           state.vaults.map((v, i) => {
             return (
               <OverviewVault
@@ -62,12 +62,12 @@ export default function Vault() {
               />
             )
           })  
-        }
+        } */}
         
-        {/* <OverviewVault
+        <OverviewVault
           index = {0}
           vault={tempData}
-        /> */}
+        />
       </div>
       {/* <h1 className="title" style={{ marginTop: 24 }}>Positions</h1>
       <div className="position-loading">Loading...</div> */}

@@ -125,3 +125,12 @@ CREATE TABLE cache (
   value text NOT NULL,
   expires timestamptz NOT NULL
 );
+
+CREATE TABLE vault_position_history (
+    id bigint NOT NULL PRIMARY KEY,
+    action integer,
+    amount numeric,
+    status text NOT NULL,
+    wallet text NOT NULL,
+    "time" text NOT NULL
+);

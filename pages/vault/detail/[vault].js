@@ -15,7 +15,9 @@ import {
   formatError,
   contracts as addresses,
   ZERO,
-  ServiceMode
+  ServiceMode,
+  apiServerHost,
+  paddingTwoletters
 } from "../../../utils";
 import Layout from "../../../components/layout";
 
@@ -23,9 +25,22 @@ export default function VaultPool() {
   const router = useRouter();
   const { signer, address, networkName, contracts } =
     useWeb3();
+  const pool = {
+    grossApy: 8,
+    performanceFee: 0.62,
+    exitFee: 0.02,
+    managementFee: 0.77,
+    net_apy: 0.2,
+    tvl: 0,
+    cap: 0,
+    locked_amount: 0,
+    volume: 0,
+    asset: '0x5979D7b546E38E414F7E9822514be443A4800529',
+    address: '0x7141D7Fcff83ca8162D85e2978aAA4F149ab0CaE'
+  }
   const { state } = useGlobalState();
   
-  const pool = state.vaults.find((p) => p.address == router.query.vault);
+  // const pool = state.vaults.find((p) => p.address == router.query.vault);
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -48,6 +63,7 @@ export default function VaultPool() {
     myNetEarning: 0,
     myNetLP: 0
   });
+  const [myPositions, setMyPositions] = useState([]);
   const [wstPrice, setWstPrice] = useState(2544);
   const [assetAllowance, setAssetAllowance] = useState(false);
   const [allowanceAmount, setAllowanceAmount] = useState(0);
@@ -61,6 +77,15 @@ export default function VaultPool() {
 
   async function fetchDetails() {
     if (!pool || !contracts) return;
+
+    const res = await (
+      await fetch(
+        apiServerHost +
+          `/fetch/vaultstrategy/positions/history?wallet=${address}`
+      )
+    ).json()
+      
+    setMyPositions(res);
 
     //test
     const assetContract = contracts.asset(pool.asset);
@@ -171,13 +196,29 @@ export default function VaultPool() {
 
     const cost = ethers.utils.parseUnits(amount.toString());
     try {
-      await runTransaction(
-        call(signer, pool.address, "+deposit-uint256,address-", cost , address),
-        "Depositing to vault...",
-        "Deposit",
-        true,
-        networkName
-      );
+      // await runTransaction(
+      //   call(signer, pool.address, "+deposit-uint256,address-", cost , address),
+      //   "Depositing to vault...",
+      //   "Deposit",
+      //   true,
+      //   networkName
+      // );
+      
+      const param = {
+        time: (Date.now()/1000).toString(),
+        action: "1",
+        amount: amount.toString(),
+        status:"Completed",
+        wallet:address
+      }
+      console.log("param", param);
+      await fetch(
+        apiServerHost +
+          `/register/vaultstrategy/positions/history`, {
+            method: "POST",
+            body: JSON.stringify(param)
+          }
+      )
       fetchDetails();
     } catch (e) {
       console.error(e);
@@ -206,6 +247,20 @@ export default function VaultPool() {
         networkName
       );
 
+      const param = {
+        time: (Date.now()/1000).toString(),
+        action: "0",
+        amount: amount.toString(),
+        status:"Completed",
+        wallet:address
+      }
+      await fetch(
+        apiServerHost +
+          `/register/vaultstrategy/positions/history`, {
+            method: "POST",
+            body: JSON.stringify(param)
+          }
+      )
       fetchDetails();
     } catch (e) {
       console.error(e);
@@ -423,7 +478,10 @@ export default function VaultPool() {
         </div>
       </div>
       <h1 className="title">Activity</h1>
-      <div className="position-loading">Loading...</div>
+      <MyActivity
+        list = {myPositions}
+        symbol = {symbol}
+      />
     </Layout>
   );
 }
@@ -455,6 +513,74 @@ function MyInfo(
           <div className="flex-1 label">LP</div>
           <div className="flex-1 label">({value.vaultSymbol})</div>
           <div> {value.lpValue < 1 ? formatNumber(value.lpValue, 18, 6) :formatKNumber(value.lpValue)} </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MyActivity(
+  value,
+  symbol,
+  ...parmas
+) {
+
+  return (
+    <>
+    {
+      value.list.length == 0 
+      ? <div className="position-loading">Loading...</div> :
+      <div className="farms">
+        <div className="mb-4">
+          <div className="grid-5--custom label">
+            <div>#</div>
+            <div>Time</div>
+            <div>Action</div>
+            <div>Amount</div>
+            <div>Status</div>
+            <div></div>
+          </div>
+        </div>
+        {value.list.map((p, i) => (
+          <Position key={i} index={i} position={p} symbol={value.symbol}/>
+        ))}
+      </div>
+    }
+    </>
+  )
+  
+}
+
+function Position({ index, position, symbol }) {
+
+  const dt = new Date(position.time * 1000);
+  const showDT = `${dt.getFullYear()}-${paddingTwoletters(dt.getMonth() + 1)}-${paddingTwoletters(dt.getDate()+1)} ${paddingTwoletters(dt.getHours())}:${paddingTwoletters(dt.getMinutes())}:${paddingTwoletters(dt.getSeconds())}`;
+  return (
+    <div className="farm">
+      <div className="grid-5--custom">
+        <div>
+          <div className="label hide show-phone">id</div>
+          <div className="flex">
+            {index + 1}
+          </div>
+        </div>
+        <div>
+          <div className="label hide show-phone">Time</div>
+          {showDT}
+        </div>
+        <div>
+          <div className="label hide show-phone">Action</div>
+          {position.action == 1 ? "Deposit" : "Withdraw"}
+        </div>
+        <div>
+          <div className="label hide show-phone">Amount</div>
+          <div>
+            {position.amount < 1 ? formatNumber(position.amount, 18, 6) : formatKNumber(position.amount)} {symbol}
+          </div>
+        </div>
+        <div>
+          <div className="label hide show-phone">Status</div>
+          <div>{position.status}</div>
         </div>
       </div>
     </div>

@@ -15,7 +15,7 @@ import * as wagmiChains from "wagmi/chains";
 import { getDefaultWallets } from "@rainbow-me/rainbowkit";
 import Icon from "./components/icon";
 
-const isLocal = false;
+const isLocal = true;
   // typeof window !== "undefined"
   //   ? window.location.hostname === "localhost"
   //   : false;
@@ -111,7 +111,7 @@ const globalStateAtom = atom({
 
 export function useGlobalState() {
 
-  const { networkName } =
+  const { networkName, address } =
     useWeb3();
   const provider = wagmiUseProvider();
   const signerData = wagmiUseSigner();
@@ -1055,4 +1055,8 @@ export function formatKNumber(num, digits) {
 
 export function capitalize(string) {
   return string[0].toUpperCase() + string.slice(1);
+}
+
+export function paddingTwoletters(number) {
+  return ("0" + number).slice(-2)
 }
