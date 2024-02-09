@@ -199,25 +199,10 @@ export default function Layout({
             >
               Wrong network connected. Switch to Arbitrum
             </div>
-          ) : (
-            service == ServiceMode.Vault && 
-            networkName != "sepolia" ? (
-              <div
-                style={{
-                  fontSize: 18,
-                  fontWeight: "bold",
-                  textAlign: "center",
-                  padding: "10vh 0",
-                }}
-              >
-                Wrong network connected. Switch to Sepolia
-              </div>
-
-            )
+          )
             : (
               <ErrorBoundary>{children}</ErrorBoundary>
             )
-          )
         }
             
         </div>

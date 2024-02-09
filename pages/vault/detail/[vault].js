@@ -21,7 +21,7 @@ import Layout from "../../../components/layout";
 
 export default function VaultPool() {
   const router = useRouter();
-  const { provider, signer, address, networkName, contracts, chainId } =
+  const { signer, address, networkName, contracts } =
     useWeb3();
   const { state } = useGlobalState();
   
@@ -66,42 +66,42 @@ export default function VaultPool() {
     const assetContract = contracts.asset(pool.asset);
     const vaultContract = contracts.vault(pool.address);
     const stContract = await vaultContract.strategy();
-    const ta = await vaultContract.totalAssets();
+    const ta = await vaultContract.totalLockedAmount();
     const strategyContract = contracts.vaultStrategy(stContract);
-    const lendingAddress = await strategyContract.lendingLogic();
-    const lendingContract = contracts.lendingLogic(lendingAddress);
+    const price = await strategyContract.getAssestPrice(pool.asset);
 
     //todo test
     // const [_totalAssest, debtAsset, netAsset, _ratio] = 
     //   await lendingContract.getNetAssetsInfo(address);
     const _totalAssest = ZERO;
-    const debtAsset = ZERO;
     const netAsset = ZERO;
-    const _ratio = 0;
 
+    const depositedAmt = await vaultContract.userDepositdAmount(address);
     const lpBalance = await vaultContract.balanceOf(address);
+    const debtAsset = await vaultContract.convertToAssets(lpBalance);
     const currency = await assetContract.symbol();
     const avBalance = await assetContract.balanceOf(address);
     const vaultCurrency = await vaultContract.symbol();
-
-    const Aamount = await assetContract.allowance(address, pool.address);
-    setAllowanceAmount(Number(formatUnits(Aamount)));
-    if (Number(formatUnits(Aamount)) >= amount) {
+    const assetPrice = Number(formatUnits(price, 8, 2));
+    const Amount = await assetContract.allowance(address, pool.address);
+    setAllowanceAmount(Number(formatUnits(Amount)));
+    if (Number(formatUnits(Amount)) >= amount) {
       setAssetAllowance(true);
     }
     const data = {
       wstLockedAmount: Number(formatUnits(ta)),
-      wstLockedUSDAmount: Number(formatUnits(ta)) * wstPrice,
+      wstLockedUSDAmount: Number(formatUnits(ta)) * assetPrice,
       ethDepositedAmount: 0,
       totalDepositedAmount: 0,
       depositedGrossAPY: Number(pool.grossApy),
       annualFee: Number(pool.managementFee),
       performanceFee: Number(pool.performanceFee),
       exitFee: Number(pool.exitFee),
-      myNetValue: Number(formatUnits(netAsset)),
-      myNetEarning: Number(formatUnits(debtAsset)),
+      myNetValue: Number(formatUnits(debtAsset)),
+      myNetEarning: Number(formatUnits(debtAsset)) - Number(formatUnits(depositedAmt)),
       myNetLP: Number(formatUnits(lpBalance))
     } 
+    setWstPrice(assetPrice);
     setVaultSymbol(vaultCurrency);
     setSymbol(currency);
     setData(data);
@@ -116,7 +116,7 @@ export default function VaultPool() {
       () => {},
       (e) => console.error("fetch", e)
     );
-  }, [pool, networkName, address, state]);
+  }, [state]);
 
   useEffect(() => {
 
@@ -144,7 +144,7 @@ export default function VaultPool() {
     if (mode == Mode.Deposit)
       setAmount(balance);
     else
-      setAmount(data.myNetLP); 
+      setAmount(data.myNetValue); 
   }
 
   function onAmount(val) {
@@ -245,9 +245,9 @@ export default function VaultPool() {
     if (mode == Mode.Deposit) {
       if (!assetAllowance) {
         onAllow();
-        return;
+      } else {
+        onDeposit();
       }
-      onDeposit();
     } else {
       onWithdraw();
     }
@@ -268,7 +268,13 @@ export default function VaultPool() {
               </div>
               <div className="flex" style={{alignItems:"center"}}>
                 <img src="/assets/wsteth.png" width={30} height={30}/>
-                <div>{`${symbol} locked: ${formatNumber(data.wstLockedAmount)} = $${formatKNumber(data.wstLockedUSDAmount, 2)}`}</div>
+                <div>{`${symbol} locked: ${
+                    data.wstLockedAmount < 0.01 ? formatNumber(data.wstLockedAmount, 18, 7) : formatNumber(data.wstLockedAmount)
+                  } = $${
+                    data.wstLockedUSDAmount < 1 ? 
+                    formatNumber(data.wstLockedUSDAmount, 18, 7)
+                    : formatKNumber(data.wstLockedUSDAmount, 2)
+                  }`}</div>
               </div>
             </div>
             
@@ -279,12 +285,14 @@ export default function VaultPool() {
               </div>
               <div className="flex" style={{justifyContent:"space-between"}}>
                 <div className="flex" style={{flexDirection:"column"}}>
-                  <div className="flex-1 label">Deposit (ETH)</div>
-                  <div>{`${formatNumber(data.ethDepositedAmount)}K / ${formatNumber(data.totalDepositedAmount)}K`}</div>
+                  <div className="flex-1 label">Deposit (wstETH)</div>
+                  <div>{`${
+                    data.wstLockedAmount < 0.01 ? formatNumber(data.wstLockedAmount, 18, 7) : formatNumber(data.wstLockedAmount)
+                  }`}</div>
                 </div>
                 <div className="flex" style={{flexDirection:"column"}}>
                   <div className="flex-1 label">Deposit Token</div>
-                  <div>ETH/WETH/wstETH</div>
+                  <div>wstETH</div>
                 </div>
                 <div className="flex" style={{flexDirection:"column"}}>
                   <div className="flex-1 label">Gross APY</div>
@@ -426,6 +434,7 @@ function MyInfo(
 ) {
   
   //todo test
+
   return (
     <div className="card mb-6">
       <h3>My Info</h3>
@@ -433,19 +442,19 @@ function MyInfo(
         <div>
           <div className="flex-1 label">Net Value</div>
           <div className="flex-1 label">({value.symbol})</div>
-          <div> {formatKNumber(value.lpValue)} </div>   
-          <div> = ${formatKNumber(value.lpValue * value.price)}</div>
+          <div> {value.netValue < 1 ? formatNumber(value.netValue, 18, 6) : formatKNumber(value.netValue)} </div>   
+          <div> = ${value.netValue * value.price < 1 ? formatNumber(value.netValue * value.price, 18, 6) : formatKNumber(value.netValue * value.price)}</div>
         </div>
         <div>
           <div className="flex-1 label">Earnings</div>
           <div className="flex-1 label">({value.symbol})</div>
-          <div> {formatKNumber(value.earning)} </div>
-          <div> = ${formatKNumber(value.earning * value.price)}</div>
+          <div> {value.earning < 1 ? formatNumber(value.earning, 18, 6) : formatKNumber(value.earning)} </div>
+          <div> = ${value.earning * value.price < 1 ? formatNumber(value.earning * value.price, 18, 6) : formatKNumber(value.earning * value.price)}</div>
         </div>
         <div>
           <div className="flex-1 label">LP</div>
           <div className="flex-1 label">({value.vaultSymbol})</div>
-          <div> {formatKNumber(value.lpValue)} </div>
+          <div> {value.lpValue < 1 ? formatNumber(value.lpValue, 18, 6) :formatKNumber(value.lpValue)} </div>
         </div>
       </div>
     </div>

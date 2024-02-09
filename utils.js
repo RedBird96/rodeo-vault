@@ -122,6 +122,7 @@ export function useGlobalState() {
   const [state, setState] = useAtom(globalStateAtom);
 
   async function fetchData() {
+
     const res = await fetch(apiServerHost, { mode: "cors" });
     const state = await res.json();
 
@@ -825,12 +826,15 @@ export function getContracts(signer, networkName) {
         [
           "function symbol() view returns (string)",
           "function totalSupply() view returns (uint)",
+          "function totalLockedAmount() view returns (uint)",
           "function balanceOf(address) view returns (uint)",
           "function allowance(address, address) view returns (uint)",
           "function approve(address, uint)",
           "function marketCapacity() view returns (uint)",
           "function totalAssets() view returns (uint)",
-          "function strategy() view returns (address)"
+          "function strategy() view returns (address)",
+          "function convertToAssets(uint) view returns (uint)",
+          "function userDepositdAmount(address) view returns (uint)"
         ],
         signer
       ),
@@ -840,7 +844,8 @@ export function getContracts(signer, networkName) {
           [
             "function getNetAssetsInfo() view returns (uint, uint, uint, uint)",
             "function getNetAssets() view returns (uint)",
-            "function lendingLogic() view returns (address)"
+            "function lendingLogic() view returns (address)",
+            "function getAssestPrice(address) view returns (uint)"
           ],
           signer
       ),

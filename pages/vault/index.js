@@ -21,9 +21,6 @@ import Layout from "../../components/layout";
 
 export default function Vault() {
 
-  const { provider, signer, address, networkName, contracts, chainId } =
-    useWeb3();
-
   const { state } = useGlobalState();
 
   // test Data
@@ -37,10 +34,10 @@ export default function Vault() {
   //   cap: 0,
   //   locked_amount: 0,
   //   volume: 0,
-  //   asset: '0xeA9302eecFAd89cc757AD1c17c241D4e07a16D1d',
-  //   address: '0x08eccD9A9A8845Adc96A4e9a8c5f925698d5D532'
+  //   asset: '0x5979D7b546E38E414F7E9822514be443A4800529',
+  //   address: '0x7141D7Fcff83ca8162D85e2978aAA4F149ab0CaE'
   // }
-
+  
   if (state.vaults.length === 0) {
     return (
       <Layout title="Vault" service = {ServiceMode.Vault}>
@@ -51,7 +48,7 @@ export default function Vault() {
       </Layout>
     );
   }
-  
+
   return (
     <Layout title="Vault" service = {ServiceMode.Vault}>
       <h1 className="title">Overview</h1>
@@ -81,7 +78,7 @@ export default function Vault() {
 
 function OverviewVault({index, vault}) {
 
-  const { provider, signer, address, networkName, contracts, chainId } =
+  const { address, networkName, contracts } =
     useWeb3();
   const router = useRouter();
   const assetContract = contracts.asset(vault.asset);
@@ -96,9 +93,9 @@ function OverviewVault({index, vault}) {
     if (!assetContract)  return;
     const assetBalance = await assetContract.balanceOf(address);
     const sy = await assetContract.symbol();
-    const su = await vaultContract.totalAssets();
+    const su = await vaultContract.totalLockedAmount();
     const ca = await vaultContract.marketCapacity();
-    setBalance(assetBalance);
+    setBalance(Number(formatUnits(assetBalance)));
     setSymbol(sy);
     setTVL(Number(formatUnits(su)));
     setCapacity(Number(formatUnits(ca)));
@@ -109,12 +106,13 @@ function OverviewVault({index, vault}) {
       () => {},
       (e) => console.error("fetch", e)
     );
-  }, [vault, address, networkName, contracts]);
+  }, [vault, address, networkName]);
 
   const url = `https://${EXPLORER_URLS[networkName]}/address/` + vault.address;
+
   return (
     <div className="card mb-6">
-      <h2 className="title">ETH/WETH/wstETH</h2>
+      <h2 className="title">wstETH</h2>
       <div className="overview-flex">
         <div className="flex-1 label">Gross APY</div>
         <div>
@@ -157,7 +155,7 @@ function OverviewVault({index, vault}) {
       <div className="overview-flex">
         <div className="flex-1 label">My Balance</div>
         <div>
-          {formatNumber(balance)} {symbol}
+          {balance < 0.01 ? formatNumber(balance, 18, 5) : formatNumber(balance)} {symbol}
         </div>
       </div>
       <div className="frame-border"></div>
