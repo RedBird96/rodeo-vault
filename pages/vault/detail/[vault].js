@@ -196,13 +196,13 @@ export default function VaultPool() {
 
     const cost = ethers.utils.parseUnits(amount.toString());
     try {
-      // await runTransaction(
-      //   call(signer, pool.address, "+deposit-uint256,address-", cost , address),
-      //   "Depositing to vault...",
-      //   "Deposit",
-      //   true,
-      //   networkName
-      // );
+      await runTransaction(
+        call(signer, pool.address, "+deposit-uint256,address-", cost , address),
+        "Depositing to vault...",
+        "Deposit",
+        true,
+        networkName
+      );
       
       const param = {
         time: (Date.now()/1000).toString(),
@@ -554,7 +554,7 @@ function MyActivity(
 function Position({ index, position, symbol }) {
 
   const dt = new Date(position.time * 1000);
-  const showDT = `${dt.getFullYear()}-${paddingTwoletters(dt.getMonth() + 1)}-${paddingTwoletters(dt.getDate()+1)} ${paddingTwoletters(dt.getHours())}:${paddingTwoletters(dt.getMinutes())}:${paddingTwoletters(dt.getSeconds())}`;
+  const showDT = `${dt.getFullYear()}-${paddingTwoletters(dt.getMonth() + 1)}-${paddingTwoletters(dt.getDate())} ${paddingTwoletters(dt.getHours())}:${paddingTwoletters(dt.getMinutes())}:${paddingTwoletters(dt.getSeconds())}`;
   return (
     <div className="farm">
       <div className="grid-5--custom">
