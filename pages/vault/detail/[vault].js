@@ -25,22 +25,10 @@ export default function VaultPool() {
   const router = useRouter();
   const { signer, address, networkName, contracts } =
     useWeb3();
-  const pool = {
-    grossApy: 8,
-    performanceFee: 0.62,
-    exitFee: 0.02,
-    managementFee: 0.77,
-    net_apy: 0.2,
-    tvl: 0,
-    cap: 0,
-    locked_amount: 0,
-    volume: 0,
-    asset: '0x5979D7b546E38E414F7E9822514be443A4800529',
-    address: '0x7141D7Fcff83ca8162D85e2978aAA4F149ab0CaE'
-  }
+    
   const { state } = useGlobalState();
   
-  // const pool = state.vaults.find((p) => p.address == router.query.vault);
+  const pool = state.vaults.find((p) => p.address == router.query.vault);
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
