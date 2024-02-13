@@ -27,7 +27,7 @@ export default function VaultPool() {
     useWeb3();
     
   const { state } = useGlobalState();
-  
+
   const pool = state.vaults.find((p) => p.address == router.query.vault);
 
   const [error, setError] = useState("");

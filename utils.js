@@ -15,7 +15,7 @@ import * as wagmiChains from "wagmi/chains";
 import { getDefaultWallets } from "@rainbow-me/rainbowkit";
 import Icon from "./components/icon";
 
-const isLocal = true;
+const isLocal = false;
   // typeof window !== "undefined"
   //   ? window.location.hostname === "localhost"
   //   : false;
