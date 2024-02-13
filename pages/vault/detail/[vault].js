@@ -529,9 +529,9 @@ function MyActivity(
             <div></div>
           </div>
         </div>
-        {value.list.map((p, i) => (
+        {/* {value.length != 0 && value.list.map((p, i) => (
           <Position key={i} index={i} position={p} symbol={value.symbol}/>
-        ))}
+        ))} */}
       </div>
     }
     </>
