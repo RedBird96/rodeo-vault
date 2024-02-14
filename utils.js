@@ -1060,3 +1060,6 @@ export function capitalize(string) {
 export function paddingTwoletters(number) {
   return ("0" + number).slice(-2)
 }
+export function convertStringToExactNumber(originalValue) {
+  return Number((Number(originalValue) * Math.pow(10, 15)).toFixed(0)) / Math.pow(10, 15);
+}

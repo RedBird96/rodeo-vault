@@ -17,7 +17,8 @@ import {
   ZERO,
   ServiceMode,
   apiServerHost,
-  paddingTwoletters
+  paddingTwoletters,
+  convertStringToExactNumber
 } from "../../../utils";
 import Layout from "../../../components/layout";
 
@@ -118,7 +119,7 @@ export default function VaultPool() {
     setVaultSymbol(vaultCurrency);
     setSymbol(currency);
     setData(data);
-    setBalance(Number(formatUnits(avBalance)));
+    setBalance(convertStringToExactNumber(formatUnits(avBalance)));
     setDisabled(false);
     setLoading(false);
   }
@@ -199,7 +200,6 @@ export default function VaultPool() {
         status:"Completed",
         wallet:address
       }
-      console.log("param", param);
       await fetch(
         apiServerHost +
           `/register/vaultstrategy/positions/history`, {
@@ -261,6 +261,7 @@ export default function VaultPool() {
   async function onAllow() {
 
     const cost = ethers.utils.parseUnits(amount.toString());
+
     try {
       await runTransaction(
         call(signer, pool.asset, "+approve-address,uint256", pool.address, cost),
